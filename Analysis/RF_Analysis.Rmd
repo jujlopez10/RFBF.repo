@@ -222,20 +222,22 @@ Study 2
 Prepping Data 
 ```{r Study 2 - Load in Data}
 
-RawdataStudy2 <- read.csv("/Users/jujlopez/Documents/Redface/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+# imac
+# Study2rawdataset <- read.csv("/Users/jujlopez/Documents/Redface/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
-# RawdataStudy2 <- read.csv("C:/Users/Julisa/Documents/RFBF/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+#laptop
+Study2rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
-RawdataStudy2<- RawdataStudy2[-c(1:2), ]  # Getting rid of unneccesary rows
+Study2rawdataset<- Study2rawdataset[-c(1:2), ]  # Getting rid of unneccesary rows
 
-RawdataStudy2 <- RawdataStudy2 %>% retype()
+Study2rawdataset <- Study2rawdataset %>% retype()
 
-RawdataStudy2 <- mutate(RawdataStudy2, Condition = ifelse(is.na(RawdataStudy2$BFPaint1), 1, 0)) # creating condition variable
+Study2rawdataset <- mutate(Study2rawdataset, Condition = ifelse(is.na(Study2rawdataset$BFPaint1), 1, 0)) # creating condition variable
 
 ```
 
 ```{r BF OK}
-BFS2.raw <- RawdataStudy2 %>% filter(Condition == 0) %>% dplyr::select(
+BFS2.raw <- Study2rawdataset %>% filter(Condition == 0) %>% dplyr::select(
   BFPaint1_1, BFPaint1_2, BFPaint1_3, BFPaint1_4,
   BFPaintWom1_1, BFPaintWom1_2, BFPaintWom1_3, BFPaintWom1_4,
   BFGroup1_1, BFGroup1_2, BFGroup1_3, BFGroup1_4,
@@ -265,7 +267,7 @@ BFS2.OK <- as.data.frame(BFS2.comp)
 ```
 
 ```{r RF OK}
-RFS2.raw <- RawdataStudy2 %>% filter(Condition == 1) %>% dplyr::select(
+RFS2.raw <- Study2rawdataset %>% filter(Condition == 1) %>% dplyr::select(
   RFPaintGroup2_1, RFPaintGroup2_2, RFPaintGroup2_3, RFPaintGroup2_4, 
   RFPaintWom1_1, RFPaintWom1_2, RFPaintWom1_3, RFPaintWom1_4, 
   RFPaintGroup1_1, RFPaintGroup1_2, RFPaintGroup1_3, RFPaintGroup1_4,
@@ -301,7 +303,7 @@ sd(BFS2.comp, na.rm = TRUE)
 
 Creating Acceptability Variable combining Redface and Blackface
 ```{r OK}
-BFS2.fullraw <- RawdataStudy2 %>% dplyr::select(
+BFS2.fullraw <- Study2rawdataset %>% dplyr::select(
   BFPaint1_1, BFPaint1_2, BFPaint1_3, BFPaint1_4,
   BFPaintWom1_1, BFPaintWom1_2, BFPaintWom1_3, BFPaintWom1_4,
   BFGroup1_1, BFGroup1_2, BFGroup1_3, BFGroup1_4,
@@ -319,7 +321,7 @@ BFS2.full.comp <- rowMeans(BFS2.full, na.rm = TRUE)
 
 # view(BFS2.full.comp)
 
-RFS2.fullraw <- RawdataStudy2 %>% dplyr::select(
+RFS2.fullraw <- Study2rawdataset %>% dplyr::select(
   RFPaintGroup2_1, RFPaintGroup2_2, RFPaintGroup2_3, RFPaintGroup2_4, 
   RFPaintWom1_1, RFPaintWom1_2, RFPaintWom1_3, RFPaintWom1_4, 
   RFPaintGroup1_1, RFPaintGroup1_2, RFPaintGroup1_3, RFPaintGroup1_4,
@@ -335,18 +337,18 @@ RFS2.full <-
 
 RFS2.full.comp <- rowMeans(RFS2.full, na.rm = TRUE)
 
-RawdataStudy2 <- RawdataStudy2 %>% mutate(RFS2.full.comp = rowMeans(RFS2.full, na.rm = TRUE))
-RawdataStudy2 <- RawdataStudy2 %>% mutate(BFS2.full.comp = rowMeans(BFS2.full, na.rm = TRUE))
+Study2rawdataset <- Study2rawdataset %>% mutate(RFS2.full.comp = rowMeans(RFS2.full, na.rm = TRUE))
+Study2rawdataset <- Study2rawdataset %>% mutate(BFS2.full.comp = rowMeans(BFS2.full, na.rm = TRUE))
 
-RawdataStudy2$RFS2.full.comp[is.nan(RawdataStudy2$RFS2.full.comp)] <- NA
+Study2rawdataset$RFS2.full.comp[is.nan(Study2rawdataset$RFS2.full.comp)] <- NA
 
-RawdataStudy2$BFS2.full.comp[is.nan(RawdataStudy2$BFS2.full.comp)] <- NA
+Study2rawdataset$BFS2.full.comp[is.nan(Study2rawdataset$BFS2.full.comp)] <- NA
 
-RawdataStudy2 <- RawdataStudy2 %>% mutate_at(vars(RFS2.full.comp:BFS2.full.comp), as.character) %>% tidyr::unite(OK, RFS2.full.comp:BFS2.full.comp, na.rm = TRUE, remove = FALSE)
+Study2rawdataset <- Study2rawdataset %>% mutate_at(vars(RFS2.full.comp:BFS2.full.comp), as.character) %>% tidyr::unite(OK, RFS2.full.comp:BFS2.full.comp, na.rm = TRUE, remove = FALSE)
 
-RawdataStudy2$OK <- as.numeric(RawdataStudy2$OK)
+Study2rawdataset$OK <- as.numeric(Study2rawdataset$OK)
 
-sd(RawdataStudy2$OK)
+sd(Study2rawdataset$OK)
 
 ```
 
@@ -354,7 +356,7 @@ sd(RawdataStudy2$OK)
 Differences in Racism Minimization Predicting Difference in Acceptability
 
 ```{r Black RM}
-BRM.raw <- RawdataStudy2 %>% dplyr::select(
+BRM.raw <- Study2rawdataset %>% dplyr::select(
   RacismMini_1, RacismMini_2, RacismMini_3, RacismMini_4, 
   RacismMini_5, RacismMini_6, RacismMini_7, RacismMini_8, 
   RacismMini_9, RacismMini_10
@@ -374,7 +376,7 @@ BRM.r <- reverse.code(RM.key,
 ```
 
 ```{r Native RM}
-NRM.raw <- RawdataStudy2 %>% dplyr::select(
+NRM.raw <- Study2rawdataset %>% dplyr::select(
   RacismMini_1.1, RacismMini_2.1, RacismMini_3.1, RacismMini_4.1, 
   RacismMini_5.1, RacismMini_6.1, RacismMini_7.1, RacismMini_8.1, 
   RacismMini_9.1, RacismMini_10.1
@@ -390,22 +392,22 @@ NRM.r <- reverse.code(RM.key,
 ```
 
 ```{r}
-RawdataStudy2 <- RawdataStudy2 %>% mutate(NRM.comp = multicon::composite(NRM.r, rel = TRUE, nomiss = 0.6))
-RawdataStudy2 <- RawdataStudy2 %>% mutate(BRM.comp = multicon::composite(BRM.r, rel = TRUE, nomiss = 0.6))
+Study2rawdataset <- Study2rawdataset %>% mutate(NRM.comp = multicon::composite(NRM.r, rel = TRUE, nomiss = 0.6))
+Study2rawdataset <- Study2rawdataset %>% mutate(BRM.comp = multicon::composite(BRM.r, rel = TRUE, nomiss = 0.6))
 
-RawdataStudy2$NRM.comp[is.nan(RawdataStudy2$NRM.comp)] <- NA
+Study2rawdataset$NRM.comp[is.nan(Study2rawdataset$NRM.comp)] <- NA
 
-RawdataStudy2$BRM.comp[is.nan(RawdataStudy2$BRM.comp)] <- NA
+Study2rawdataset$BRM.comp[is.nan(Study2rawdataset$BRM.comp)] <- NA
 
-RawdataStudy2 <- RawdataStudy2 %>% mutate_at(vars(NRM.comp:BRM.comp), as.character) %>% tidyr::unite(RM, NRM.comp:BRM.comp, na.rm = TRUE, remove = FALSE)
+Study2rawdataset <- Study2rawdataset %>% mutate_at(vars(NRM.comp:BRM.comp), as.character) %>% tidyr::unite(RM, NRM.comp:BRM.comp, na.rm = TRUE, remove = FALSE)
 
-RawdataStudy2$RM <- as.numeric(RawdataStudy2$RM)
+Study2rawdataset$RM <- as.numeric(Study2rawdataset$RM)
 ```
 
 ```{r Mediation}
-X <- RawdataStudy2$Condition
-M <- RawdataStudy2$RM
-Y <- RawdataStudy2$OK
+X <- Study2rawdataset$Condition
+M <- Study2rawdataset$RM
+Y <- Study2rawdataset$OK
 Data <- data.frame(X=X, Y=Y, M=M)
 
 model <- ' # direct effect
@@ -428,13 +430,16 @@ summary(fit)
 Demographics
 
 ```{r Demographics}
-# N
+# N = 170
 
-# Gender
+# Gender Women = 57.6
+table(Study2rawdataset$Gender)
 
-# Age
+# Age = 22.41
+table(Study2rawdataset$Age)
 
-# FGC Status
+# FGC Status = 88.2%
+Edu2 <- Study2rawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
 
 ```
 
