@@ -29,9 +29,13 @@ Study 1A - T-Test between Redface and Blackface (Between Subjects)
 
 ```{r Study 1A - Load in Data}
 
-Study1Arawdataset <- read.csv("/Users/jujlopez/Documents/Redface/Data/Study1A.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+# imac
+# Study1Arawdataset <- read.csv("/Users/jujlopez/Documents/Redface/Data/Study1A.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
-Study1Arawdataset<- Study1Arawdataset[-c(1:9), ]  
+# laptop
+Study1Arawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study1A.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
+Study1Arawdataset<- Study1Arawdataset[-c(1:10), ]  
 
 Study1Arawdataset <- Study1Arawdataset %>% retype()
 
@@ -110,13 +114,16 @@ Study 1A - Demographics
 ```{r Demographics}
 # N = 77
 
-# Gender
+# Gender = 55.8%
 
-table(Study1Arawdataset$Gend)
+table(Study1Arawdataset$Gender)
 
-# Age
+# Age = 19.02
+table(Study1Arawdataset$Age)
 
-# FGC Status
+# FGC Status (N = 52)
+Edu <- Study1Arawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
+
 ```
 
 Study 1A - Power analysis
@@ -188,6 +195,7 @@ Study 1B - Demographics
 
 ```{r Demographics}
 # Gender
+table(Study1Arawdataset$Gender)
 
 # Age
 
