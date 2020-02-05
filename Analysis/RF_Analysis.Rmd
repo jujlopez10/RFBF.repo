@@ -122,7 +122,7 @@ table(Study1Arawdataset$Gender)
 table(Study1Arawdataset$Age)
 
 # FGC Status (N = 52)
-Edu <- Study1Arawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
+Edu1A <- Study1Arawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
 
 ```
 
@@ -136,9 +136,14 @@ power.t.test(n = 77, delta = (mean(BF1aOK) - mean(RF1aOK, na.rm = TRUE)), sig.le
 Study 1B - T-Test between Redface and Blackface (Between Subjects)
 
 ```{r Study 1B - Load in Data}
-Study1Brawdataset <- read.csv("/Users/jujlopez/Documents/Redface/Data/Study1B.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
-Study1Brawdataset<- Study1Brawdataset[-c(1), ]  
+#imac
+# Study1Brawdataset <- read.csv("/Users/jujlopez/Documents/Redface/Data/Study1B.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
+# laptop
+Study1Brawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study1B.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
+Study1Brawdataset<- Study1Brawdataset[-c(1:2), ]  
 
 Study1Brawdataset <- Study1Brawdataset %>% retype()
 ```
@@ -194,12 +199,16 @@ sd(RF1bOK, na.rm = TRUE)
 Study 1B - Demographics
 
 ```{r Demographics}
+# N = 103
+
 # Gender
-table(Study1Arawdataset$Gender)
+table(Study1Brawdataset$Gender)
 
 # Age
+table(Study1Brawdataset$Age)
 
 # FGC Status
+Edu1B <- Study1Brawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
 ```
 
 Study 1B - Power analysis
@@ -212,6 +221,7 @@ Study 2
 
 Prepping Data 
 ```{r Study 2 - Load in Data}
+
 RawdataStudy2 <- read.csv("/Users/jujlopez/Documents/Redface/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
 # RawdataStudy2 <- read.csv("C:/Users/Julisa/Documents/RFBF/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
