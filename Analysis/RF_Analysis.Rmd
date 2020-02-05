@@ -122,7 +122,11 @@ table(Study1Arawdataset$Gender)
 table(Study1Arawdataset$Age)
 
 # FGC Status (N = 52)
+<<<<<<< HEAD
 Edu1A <- Study1Arawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
+=======
+Edu <- Study1Arawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
+>>>>>>> master
 
 ```
 
@@ -202,7 +206,11 @@ Study 1B - Demographics
 # N = 103
 
 # Gender
+<<<<<<< HEAD
 table(Study1Brawdataset$Gender)
+=======
+table(Study1Arawdataset$Gender)
+>>>>>>> master
 
 # Age
 table(Study1Brawdataset$Age)
