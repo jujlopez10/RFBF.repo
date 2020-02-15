@@ -67,7 +67,33 @@ BF1a.r <-
 
 BF1a.df <- as.data.frame(BF1a.r)
 
-BF1aOK <- rowMeans(BF1a.df, na.rm = TRUE)
+BFman_1 <- dplyr::coalesce(BF1a.df$Q112_1, BF1a.df$Q163_1)
+BFman_2 <- dplyr::coalesce(BF1a.df$`Q112_2-`, BF1a.df$`Q163_2-`)
+BFman_3 <- dplyr::coalesce(BF1a.df$Q112_3, BF1a.df$Q163_3)
+BFman_4 <- dplyr::coalesce(BF1a.df$`Q112_4-`, BF1a.df$`Q163_4-`)
+
+BFwom_1 <- BF1a.df$Q113_1
+BFwom_2 <- BF1a.df$`Q113_2-`
+BFwom_3 <- BF1a.df$Q113_3
+BFwom_4 <- BF1a.df$`Q113_4-`
+
+BFgroup_1 <- dplyr::coalesce(BF1a.df$Q116_1, BF1a.df$Q136_1)
+BFgroup_2 <- dplyr::coalesce(BF1a.df$`Q116_2-`, BF1a.df$`Q136_2-`)
+BFgroup_3 <- dplyr::coalesce(BF1a.df$Q116_3, BF1a.df$Q136_3)
+BFgroup_4 <- dplyr::coalesce(BF1a.df$`Q116_4-`, BF1a.df$`Q136_4-`)
+
+BF1a.df <- data.frame(
+  BFman_1, BFman_2, BFman_3, BFman_4,
+  BFwom_1, BFwom_2, BFwom_3, BFwom_4,
+  BFgroup_1, BFgroup_2, BFgroup_3, BFgroup_4
+)
+
+BF1a.comp <-
+  multicon::composite(BF1a.df,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+BF1a <- as.data.frame(BF1a.comp)
 
 ```
 
@@ -88,25 +114,41 @@ RF1a.r <-
 
 RF1a.df <- as.data.frame(RF1a.r)
 
-RF1aOK <- rowMeans(RF1a.df, na.rm = TRUE)
+RFman_1 <- dplyr::coalesce(RF1a.df$Q148_1, RF1a.df$Q123_1)
+RFman_2 <- dplyr::coalesce(RF1a.df$`Q148_2-`, RF1a.df$`Q123_2-`)
+RFman_3 <- dplyr::coalesce(RF1a.df$Q148_3, RF1a.df$Q123_3)
+RFman_4 <- dplyr::coalesce(RF1a.df$`Q148_4-`, RF1a.df$`Q123_4-`)
+
+RFwom_1 <- RF1a.df$Q160_1
+RFwom_2 <- RF1a.df$`Q160_2-`
+RFwom_3 <- RF1a.df$Q160_3
+RFwom_4 <- RF1a.df$`Q160_4-`
+
+RFgroup_1 <- dplyr::coalesce(RF1a.df$Q143_1, RF1a.df$Q156_1)
+RFgroup_2 <- dplyr::coalesce(RF1a.df$`Q143_2-`, RF1a.df$`Q156_2-`)
+RFgroup_3 <- dplyr::coalesce(RF1a.df$Q143_3, RF1a.df$Q156_3)
+RFgroup_4 <- dplyr::coalesce(RF1a.df$`Q143_4-`, RF1a.df$`Q156_4-`)
+
+RF1a.df <- data.frame(
+  RFman_1, RFman_2, RFman_3, RFman_4,
+  RFwom_1, RFwom_2, RFwom_3, RFwom_4,
+  RFgroup_1, RFgroup_2, RFgroup_3, RFgroup_4
+)
+
+RF1a.comp <-
+  multicon::composite(RF1a.df,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+RF1a <- as.data.frame(RF1a.comp)
 
 # RFPaintWom2_1 - Cleveland Indian Woman & BFPaintWom2_1 - Afro Woman
-
-Study1Arawdataset <- mutate(Study1Arawdataset, RF1aOK = rowMeans(RF1a.df, na.rm = TRUE))
-Study1Arawdataset <- mutate(Study1Arawdataset, BF1aOK = rowMeans(BF1a.df, na.rm = TRUE))
-
 # write.csv(Study1Arawdataset, 'Study1A_W')
 ```
 
 
 ```{r T test}
-t.test(BF1aOK, RF1aOK, paired = TRUE)
-
-mean(BF1aOK, na.rm = TRUE) 
-sd(BF1aOK, na.rm = TRUE) 
-mean(RF1aOK, na.rm = TRUE)
-sd(RF1aOK, na.rm = TRUE)
-
+t.test(BF1a.comp, RF1a.comp, paired = TRUE)
 ```
 
 Study 1A - Demographics

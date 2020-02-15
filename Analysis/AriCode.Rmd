@@ -1,0 +1,444 @@
+---
+title: "Redface Blackface Study-replicating a paper draft"
+author: "Ari"
+date: "6/13/2019"
+output: 
+  html_document:
+    toc: True
+    toc_depth: 5
+    toc_float: 
+      collapsed: False
+    number_sections: True
+    code_folding: hide
+  
+---
+
+## Necessary Packages
+```{r load packages}
+library(psych) # For reverse coding variables and reading data files
+library(multicon) # For creating composites
+library(tidyverse)
+library(haven)
+library(labelled)
+```
+
+## Functions to center things 
+```{r functions}
+
+center<-function(MOD)
+{
+  centered<-MOD-mean(MOD,na.rm=TRUE)
+  return(centered)
+}
+
+low<-function(MOD)
+{
+  low<-(MOD-mean(MOD,na.rm=TRUE))+sd(MOD, na.rm=TRUE)
+  return(low)
+}
+
+high<-function(MOD)
+{
+  high<-(MOD-mean(MOD, na.rm=TRUE))-sd(MOD, na.rm=TRUE)
+  return(high)
+}
+
+gmc <- function(MOD, grp) 
+  { 
+  gmcentered<- (MOD-tapply(MOD,grp,mean,na.rm=TRUE)[grp])
+  return(gmcentered)
+
+}
+
+```
+
+## Prepping Data File
+```{r Read Data File}
+BFRF1 <- read_sav("/Users/arianneeason/Downloads/Paper_Study1.sav", user_na = FALSE)
+#BFRF1 <- subset(BFRF1, V10==1)
+BFRF1 <- subset(BFRF1, Race==3)
+```
+
+Blackface Composite All Items
+```{r BF Composite All Items}
+
+BFRF1_Blackface.All <- 
+ BFRF1 %>% 
+  select(
+    BFPaint1_1,
+    BFPaint1_2,
+    BFPaint1_3,
+    BFPaint1_4,
+    BFPaintWom1_1,
+    BFPaintWom1_2,
+    BFPaintWom1_3,
+    BFPaintWom1_4, 
+    BFGroup1_1, 
+    BFGroup1_2,
+    BFGroup1_3,
+    BFGroup1_4, 
+    BFPaintMan2_1, 
+    BFPaintMan2_2, 
+    BFPaintMan2_3, 
+    BFPaintMan2_4, 
+    BFPaintWom2_1,
+    BFPaintWom2_2,
+    BFPaintWom2_3,
+    BFPaintWom2_4, 
+    BFGroup2_1, 
+    BFGroup2_2, 
+    BFGroup2_3, 
+    BFGroup2_4
+  )
+
+BF.All.Key = c(1, -1, 1, -1, 
+           1, -1, 1, -1,
+           1, -1, 1, -1,
+           1, -1, 1, -1,
+           1, -1, 1, -1,
+           1, -1, 1, -1) #Reverse Scoring Items
+
+BFRF1_Blackface.All.data <-
+  reverse.code(BF.All.Key,
+               BFRF1_Blackface.All,
+               mini = 1,
+               maxi = 7)
+
+BF.All.comp <-
+  multicon::composite(BFRF1_Blackface.All.data,
+  rel = TRUE, 
+  nomiss = 0.6) # Making Composite
+
+BF.All <- as.data.frame(BF.All.comp)
+```
+
+Blackface Compsite sans One Photo
+```{r BF Composite Sans One Item}
+
+BFRF1_Blackface <- 
+ BFRF1 %>% 
+  select(
+    BFPaint1_1,
+    BFPaint1_2,
+    BFPaint1_3,
+    BFPaint1_4,
+    BFPaintWom1_1,
+    BFPaintWom1_2,
+    BFPaintWom1_3,
+    BFPaintWom1_4, 
+    BFGroup1_1, 
+    BFGroup1_2,
+    BFGroup1_3,
+    BFGroup1_4, 
+    BFPaintMan2_1, 
+    BFPaintMan2_2, 
+    BFPaintMan2_3, 
+    BFPaintMan2_4, 
+    #BFPaintWom2_1,
+    #BFPaintWom2_2,
+    #BFPaintWom2_3,
+    #BFPaintWom2_4, 
+    BFGroup2_1, 
+    BFGroup2_2, 
+    BFGroup2_3, 
+    BFGroup2_4
+  )
+
+BF.Key = c(1, -1, 1, -1, 
+           1, -1, 1, -1,
+           1, -1, 1, -1,
+           1, -1, 1, -1,
+           #1, -1, 1, -1,
+           1, -1, 1, -1) #Reverse Scoring Items
+BFRF1_Blackface.data <-
+  reverse.code(BF.Key,
+               BFRF1_Blackface,
+               mini = 1,
+               maxi = 7)
+
+BF.comp <-
+  multicon::composite(BFRF1_Blackface.data,
+  rel = TRUE, 
+  nomiss = 0) # Making Composite
+
+BF <- as.data.frame(BF.comp)
+```
+
+Redface Composite
+```{r RF Composite All Items}
+
+BFRF1_Redface.All <- 
+ BFRF1 %>% 
+  select(
+    RFPaintGroup2_1,
+    RFPaintGroup2_2,
+    RFPaintGroup2_3,
+    RFPaintGroup2_4,
+    RFPaintWom1_1,
+    RFPaintWom1_2,
+    RFPaintWom1_3,
+    RFPaintWom1_4,
+    RFPaintGroup1_1,
+    RFPaintGroup1_2,
+    RFPaintGroup1_3,
+    RFPaintGroup1_4,
+    RFPaintMan2_1,
+    RFPaintMan2_2,
+    RFPaintMan2_3,
+    RFPaintMan2_4,
+    RFPaintWom2_1,
+    RFPaintWom2_2,
+    RFPaintWom2_3,
+    RFPaintWom2_4,
+    RFGroup2_1,
+    RFGroup2_2, 
+    RFGroup2_3, 
+    RFGroup2_4
+  )
+
+RF.All.Key = c(1, -1, 1, -1, 
+           1, -1, 1, -1,
+           1, -1, 1, -1,
+           1, -1, 1, -1,
+           1, -1, 1, -1,
+           1, -1, 1, -1) #Reverse Scoring Items
+BFRF1_Redface.All.data <-
+  reverse.code(RF.All.Key,
+               BFRF1_Redface.All,
+               mini = 1,
+               maxi = 7)
+
+RF.All.comp <-
+  multicon::composite(BFRF1_Redface.All.data,
+  rel = TRUE, 
+  nomiss = 0) # Making Composite
+
+RF.All <- as.data.frame(RF.All.comp)
+```
+
+Redface Composite Sans One Photo
+```{r RF Composite Sans one Item}
+
+BFRF1_Redface <- 
+ BFRF1 %>% 
+  select(
+    RFPaintGroup2_1,
+    RFPaintGroup2_2,
+    RFPaintGroup2_3,
+    RFPaintGroup2_4,
+    RFPaintWom1_1,
+    RFPaintWom1_2,
+    RFPaintWom1_3,
+    RFPaintWom1_4,
+    RFPaintGroup1_1,
+    RFPaintGroup1_2,
+    RFPaintGroup1_3,
+    RFPaintGroup1_4,
+    RFPaintMan2_1,
+    RFPaintMan2_2,
+    RFPaintMan2_3,
+    RFPaintMan2_4,
+    #RFPaintWom2_1,
+    #RFPaintWom2_2,
+    #RFPaintWom2_3,
+    #RFPaintWom2_4,
+    RFGroup2_1,
+    RFGroup2_2, 
+    RFGroup2_3, 
+    RFGroup2_4
+  )
+
+RF.Key = c(1, -1, 1, -1, 
+           1, -1, 1, -1,
+           1, -1, 1, -1,
+           1, -1, 1, -1,
+           #1, -1, 1, -1,
+           1, -1, 1, -1) #Reverse Scoring Items
+BFRF1_Redface.data <-
+  reverse.code(RF.Key,
+               BFRF1_Redface,
+               mini = 1,
+               maxi = 7)
+
+RF.comp <-
+  multicon::composite(BFRF1_Redface.data,
+  rel = TRUE, 
+  nomiss = 0) # Making Composite
+
+RF <- as.data.frame(RF.comp)
+```
+
+Racism Minimization-Black
+```{r Black Racism Minimization Composite}
+BFRF1_BlackRaceMini <- 
+ BFRF1 %>% 
+  select(RacismMini_1,
+         RacismMini_2,
+         RacismMini_3,
+         RacismMini_4,
+         RacismMini_5,
+         RacismMini_6,
+         RacismMini_7,
+         RacismMini_8, 
+         RacismMini_9,
+         RacismMini_10
+  )
+
+RacismMini.Key = c(1, -1, 1, -1, -1,
+                   -1, -1, 1, 1, 1) #Reverse Scoring Items
+BFRF1_BlackRaceMini.data <-
+  reverse.code(RacismMini.Key,
+               BFRF1_BlackRaceMini,
+               mini = 1,
+               maxi = 7)
+
+BlackRaceMini.comp <-
+  multicon::composite(BFRF1_BlackRaceMini.data,
+  rel = TRUE, 
+  nomiss = 0) # Making Composite
+
+BlkMini <- as.data.frame(BlackRaceMini.comp)
+
+
+```
+
+Racism Minimization Native
+```{r Native Racism Minimization Composite}
+BFRF1_NativeRaceMini <- 
+ BFRF1 %>% 
+  select(RacismMini_1.0,
+         RacismMini_2.0,
+         RacismMini_3.0,
+         RacismMini_4.0,
+         RacismMini_5.0,
+         RacismMini_6.0,
+         RacismMini_7.0,
+         RacismMini_8.0, 
+         RacismMini_9.0,
+         RacismMini_10.0
+  )
+
+RacismMini.Key = c(1, -1, 1, -1, -1,
+                   -1, -1, 1, 1, 1) #Reverse Scoring Items
+BFRF1_NativeRaceMini.data <-
+  reverse.code(RacismMini.Key,
+               BFRF1_NativeRaceMini,
+               mini = 1,
+               maxi = 7)
+
+NativeRaceMini.comp <-
+  multicon::composite(BFRF1_NativeRaceMini.data,
+  rel = TRUE, 
+  nomiss = 0) # Making Composite
+
+NtvMini <- as.data.frame(NativeRaceMini.comp)
+
+
+```
+
+Adding Composites to File
+```{r Adding Composites to Data File}
+BFRF1 <- cbind(BFRF1, RF, BF, BF.All, RF.All, BlkMini, NtvMini)
+```
+
+Creating New Variables
+Acceptability.Check variable should be the same as the OK variable
+```{r Combining Columns}
+#One column with racism minimization values
+BFRF1 <- BFRF1 %>% 
+  mutate(RaceMini = coalesce(NativeRaceMini.comp, BlackRaceMini.comp)) 
+
+#One column with acceptability ratings
+BFRF1 <- BFRF1 %>% 
+  mutate(Acceptability = coalesce(RF.comp, BF.comp)) 
+
+#One column with acceptability.all ratings
+BFRF1 <- BFRF1 %>% 
+  mutate(Acceptability.AllPhotos = coalesce(RF.All.comp, BF.All.comp)) 
+
+#One column with acceptability.checking to align with prior analyses
+BFRF1 <- BFRF1 %>% 
+  mutate(Acceptability.Check = coalesce(RF.All.comp, BF.comp)) 
+```
+
+Coding Condition
+```{r Recode Condition}
+BFRF1 <- BFRF1 %>% 
+  mutate(ConditionAri = Condition)
+
+BFRF1 <- BFRF1 %>% 
+  mutate(ConditionEffect = recode(ConditionAri, "0"=-1, "1"=1))
+
+BFRF1 <- BFRF1 %>% 
+  mutate(Blk0 = recode(ConditionAri, "0"=0, "1"=1))
+
+BFRF1 <- BFRF1 %>% 
+  mutate(Ntv0 = recode(ConditionAri, "0"=1, "1"=0))
+```
+
+## Analyses{.tabset}
+
+### Main Effects 
+```{r Main Effects }
+M1 <- lm(Acceptability ~ 1 + ConditionEffect , data = BFRF1 )
+summary(M1)
+
+M1.1 <- lm(Acceptability.AllPhotos ~ 1 + ConditionEffect , data = BFRF1 )
+summary(M1.1)
+
+M1.2 <- lm(Acceptability.Check ~ 1 + ConditionEffect , data = BFRF1 )
+summary(M1.2)
+
+M1.3 <- lm(OK ~ 1 + ConditionEffect , data = BFRF1 )
+summary(M1.3)
+```
+
+### Moderation
+```{r Moderation}
+
+R1 <- lm(Acceptability ~ 1 + center(RaceMini) + ConditionEffect + center(RaceMini)*ConditionEffect, data = BFRF1)
+summary(R1)
+
+R1.1 <- lm(Acceptability.AllPhotos ~ 1 + center(RaceMini) + ConditionEffect + center(RaceMini)*ConditionEffect, data = BFRF1)
+summary(R1.1)
+
+R1.2 <- lm(Acceptability.Check ~ 1 + center(RaceMini) + ConditionEffect + center(RaceMini)*ConditionEffect, data = BFRF1)
+summary(R1.2)
+
+R1.3 <- lm(OK ~ 1 + center(RaceMini) + ConditionEffect + center(RaceMini)*ConditionEffect, data = BFRF1)
+summary(R1.3)
+
+```
+
+
+### Simple Slopes {.tabset}
+#### Black Simple Slopes
+```{r Black Simple Slopes Study 3 }
+B1 <- lm(Acceptability ~ 1 + center(RaceMini) + Blk0 + center(RaceMini)*Blk0, data = BFRF1)
+summary(B1)
+
+B1.1 <- lm(Acceptability.AllPhotos ~ 1 + center(RaceMini) + Blk0 + center(RaceMini)*Blk0, data = BFRF1)
+summary(B1.1)
+
+B1.2 <- lm(Acceptability.Check ~ 1 + center(RaceMini) + Blk0 + center(RaceMini)*Blk0, data = BFRF1)
+summary(B1.2)
+
+B1.3 <- lm(OK ~ 1 + center(RaceMini) + Blk0 + center(RaceMini)*Blk0, data = BFRF1)
+summary(B1.3)
+
+
+```
+#### Native Simple Slopes
+```{r Native Simple Slopes Study 3 }
+N1 <- lm(Acceptability ~ 1 + center(RaceMini) + Ntv0 + center(RaceMini)*Ntv0, data = BFRF1)
+summary(N1)
+
+N1.1 <- lm(Acceptability.AllPhotos ~ 1 + center(RaceMini) + Ntv0 + center(RaceMini)*Ntv0, data = BFRF1)
+summary(N1.1)
+
+N1.2 <- lm(Acceptability.Check ~ 1 + center(RaceMini) + Ntv0 + center(RaceMini)*Ntv0, data = BFRF1)
+summary(N1.2)
+
+N1.3 <- lm(OK ~ 1 + center(RaceMini) + Ntv0 + center(RaceMini)*Ntv0, data = BFRF1)
+summary(N1.3)
+```
