@@ -142,6 +142,16 @@ RF1a.comp <-
 
 RF1a <- as.data.frame(RF1a.comp)
 
+midpoint <- data.frame(midpoint = c(
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4))
+
 # RFPaintWom2_1 - Cleveland Indian Woman & BFPaintWom2_1 - Afro Woman
 # write.csv(Study1Arawdataset, 'Study1A_W')
 ```
@@ -149,6 +159,8 @@ RF1a <- as.data.frame(RF1a.comp)
 
 ```{r T test}
 t.test(BF1a.comp, RF1a.comp, paired = TRUE)
+t.test(midpoint, BF1a.comp, paired = FALSE)
+t.test(midpoint, RF1a.comp, paired = FALSE)
 ```
 
 Study 1A - Demographics
