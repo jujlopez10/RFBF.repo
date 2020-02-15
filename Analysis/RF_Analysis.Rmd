@@ -389,11 +389,9 @@ T-test between RFOK and BFOK
 
 ```{r T test}
 t.test(RFS2.OK, BFS2.OK, paired = FALSE)
+t.test(midpoint, BFS2.OK, paired = FALSE)
+t.test(midpoint, RFS2.OK, paired = FALSE)
 
-mean(RFS2.comp, na.rm = TRUE)
-sd(RFS2.comp, na.rm = TRUE)
-mean(BFS2.comp, na.rm = TRUE)
-sd(BFS2.comp, na.rm = TRUE)
 ```
 
 Creating Acceptability Variable combining Redface and Blackface
@@ -412,9 +410,7 @@ BFS2.full <-
                mini = 1,
                maxi = 7)
 
-BFS2.full.comp <- rowMeans(BFS2.full, na.rm = TRUE)
-
-# view(BFS2.full.comp)
+BFS2.full <- as.data.frame(BFS2.full)
 
 RFS2.fullraw <- Study2rawdataset %>% dplyr::select(
   RFPaintGroup2_1, RFPaintGroup2_2, RFPaintGroup2_3, RFPaintGroup2_4, 
@@ -430,23 +426,48 @@ RFS2.full <-
                mini = 1,
                maxi = 7)
 
-RFS2.full.comp <- rowMeans(RFS2.full, na.rm = TRUE)
+RFS2.full <- as.data.frame(RFS2.full)
 
-Study2rawdataset <- Study2rawdataset %>% mutate(RFS2.full.comp = rowMeans(RFS2.full, na.rm = TRUE))
-Study2rawdataset <- Study2rawdataset %>% mutate(BFS2.full.comp = rowMeans(BFS2.full, na.rm = TRUE))
+S2man1_1 <- dplyr::coalesce(BFS2.full$BFPaint1_1, RFS2.full$RFPaintGroup2_1)
+S2man1_2 <- dplyr::coalesce(BFS2.full$`BFPaint1_2-`, RFS2.full$`RFPaintGroup2_2-`)
+S2man1_3 <- dplyr::coalesce(BFS2.full$BFPaint1_3, RFS2.full$RFPaintGroup2_3)
+S2man1_4 <- dplyr::coalesce(BFS2.full$`BFPaint1_4-`, RFS2.full$`RFPaintGroup2_4-`)
 
-Study2rawdataset$RFS2.full.comp[is.nan(Study2rawdataset$RFS2.full.comp)] <- NA
+S2man2_1 <- dplyr::coalesce(BFS2.full$BFPaintMan2_1, RFS2.full$RFPaintMan2_1)
+S2man2_2 <- dplyr::coalesce(BFS2.full$`BFPaintMan2_2-`, RFS2.full$`RFPaintMan2_2-`)
+S2man2_3 <- dplyr::coalesce(BFS2.full$BFPaintMan2_3, RFS2.full$RFPaintMan2_3)
+S2man2_4 <- dplyr::coalesce(BFS2.full$`BFPaintMan2_4-`, RFS2.full$`RFPaintMan2_4-`)
 
-Study2rawdataset$BFS2.full.comp[is.nan(Study2rawdataset$BFS2.full.comp)] <- NA
+S2wom1_1 <- dplyr::coalesce(BFS2.full$BFPaintWom1_1, RFS2.full$RFPaintWom1_1)
+S2wom1_2 <- dplyr::coalesce(BFS2.full$`BFPaintWom1_2-`, RFS2.full$`RFPaintWom1_2-`)
+S2wom1_3 <- dplyr::coalesce(BFS2.full$BFPaintWom1_3, RFS2.full$RFPaintWom1_3)
+S2wom1_4 <- dplyr::coalesce(BFS2.full$`BFPaintWom1_4-`, RFS2.full$`RFPaintWom1_4-`)
 
-Study2rawdataset <- Study2rawdataset %>% mutate_at(vars(RFS2.full.comp:BFS2.full.comp), as.character) %>% tidyr::unite(OK, RFS2.full.comp:BFS2.full.comp, na.rm = TRUE, remove = FALSE)
+S2group1_1 <- dplyr::coalesce(BFS2.full$BFGroup1_1, RFS2.full$RFPaintGroup1_1)
+S2group1_2 <- dplyr::coalesce(BFS2.full$`BFGroup1_2-`, RFS2.full$`RFPaintGroup1_2-`)
+S2group1_3 <- dplyr::coalesce(BFS2.full$BFGroup1_3, RFS2.full$RFPaintGroup1_3)
+S2group1_4 <- dplyr::coalesce(BFS2.full$`BFGroup1_4-`, RFS2.full$`RFPaintGroup1_4-`)
 
-Study2rawdataset$OK <- as.numeric(Study2rawdataset$OK)
+S2group2_1 <- dplyr::coalesce(BFS2.full$BFGroup2_1, RFS2.full$RFGroup2_1)
+S2group2_2 <- dplyr::coalesce(BFS2.full$`BFGroup2_2-`, RFS2.full$`RFGroup2_2-`)
+S2group2_3 <- dplyr::coalesce(BFS2.full$BFGroup2_3, RFS2.full$RFGroup2_3)
+S2group2_4 <- dplyr::coalesce(BFS2.full$`BFGroup2_4-`, RFS2.full$`RFGroup2_4-`)
 
-sd(Study2rawdataset$OK)
+S2.full.df <- data.frame(
+  S2man1_1, S2man1_2, S2man1_3, S2man1_4,
+  S2man2_1, S2man2_2, S2man2_3, S2man2_4,
+  S2wom1_1, S2wom1_2, S2wom1_3, S2wom1_4,
+  S2group1_1, S2group1_2, S2group1_3, S2group1_4,
+  S2group2_1, S2group2_2, S2group2_3, S2group2_4)
+
+OK <-
+  multicon::composite(S2.full.df,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+view(RM)
 
 ```
-
 
 Differences in Racism Minimization Predicting Difference in Acceptability
 
@@ -467,10 +488,8 @@ BRM.r <- reverse.code(RM.key,
                       mini = 1,
                       max = 7)
 
-# BRM.df <- as.data.frame(BRM.comp)
-```
+BRM.df <- as.data.frame(BRM.r)
 
-```{r Native RM}
 NRM.raw <- Study2rawdataset %>% dplyr::select(
   RacismMini_1.1, RacismMini_2.1, RacismMini_3.1, RacismMini_4.1, 
   RacismMini_5.1, RacismMini_6.1, RacismMini_7.1, RacismMini_8.1, 
@@ -482,28 +501,33 @@ NRM.r <- reverse.code(RM.key,
                       mini = 1,
                       max = 7)
 
-# NRM.df <- as.data.frame(NRM.comp)
+NRM.df <- as.data.frame(NRM.r)
+
+RM_1 <- dplyr::coalesce(BRM.df$RacismMini_1, NRM.df$RacismMini_1.1)
+RM_2 <- dplyr::coalesce(BRM.df$`RacismMini_2-`, NRM.df$`RacismMini_2.1-`)
+RM_3 <- dplyr::coalesce(BRM.df$RacismMini_3, NRM.df$RacismMini_3.1)
+RM_4 <- dplyr::coalesce(BRM.df$`RacismMini_4-`, NRM.df$`RacismMini_4.1-`)
+RM_5 <- dplyr::coalesce(BRM.df$`RacismMini_5-`, NRM.df$`RacismMini_5.1-`)
+RM_6 <- dplyr::coalesce(BRM.df$`RacismMini_6-`, NRM.df$`RacismMini_6.1-`)
+RM_7 <- dplyr::coalesce(BRM.df$`RacismMini_7-`, NRM.df$`RacismMini_7.1-`)
+RM_8 <- dplyr::coalesce(BRM.df$RacismMini_8, NRM.df$RacismMini_8.1)
+RM_9 <- dplyr::coalesce(BRM.df$RacismMini_9, NRM.df$RacismMini_9.1)
+RM_10 <- dplyr::coalesce(BRM.df$RacismMini_10, NRM.df$RacismMini_10.1)
+
+RM_S2.df <- data.frame(RM_1, RM_2, RM_3, RM_4, RM_5, RM_6, RM_7, RM_8, RM_9, RM_10)
+
+RM <- multicon::composite(RM_S2.df,
+  rel = TRUE, 
+  nomiss = 0.6)
 
 ```
 
-```{r}
-Study2rawdataset <- Study2rawdataset %>% mutate(NRM.comp = multicon::composite(NRM.r, rel = TRUE, nomiss = 0.6))
-Study2rawdataset <- Study2rawdataset %>% mutate(BRM.comp = multicon::composite(BRM.r, rel = TRUE, nomiss = 0.6))
-
-Study2rawdataset$NRM.comp[is.nan(Study2rawdataset$NRM.comp)] <- NA
-
-Study2rawdataset$BRM.comp[is.nan(Study2rawdataset$BRM.comp)] <- NA
-
-Study2rawdataset <- Study2rawdataset %>% mutate_at(vars(NRM.comp:BRM.comp), as.character) %>% tidyr::unite(RM, NRM.comp:BRM.comp, na.rm = TRUE, remove = FALSE)
-
-Study2rawdataset$RM <- as.numeric(Study2rawdataset$RM)
-```
 
 ```{r Mediation}
 X <- Study2rawdataset$Condition
-M <- Study2rawdataset$RM
-Y <- Study2rawdataset$OK
-Data <- data.frame(X=X, Y=Y, M=M)
+M <- RM
+Y <- OK
+Data <- data.frame(X=Study2rawdataset$Condition, Y=OK, M=RM)
 
 model <- ' # direct effect
              Y ~ c*X
