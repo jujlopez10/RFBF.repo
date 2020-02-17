@@ -55,6 +55,18 @@ gmc <- function(MOD, grp)
 
 ```
 
+```{r}
+midpoint <- data.frame(midpoint = c(
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4))
+```
+
 
 Study 1A - T-Test between Redface and Blackface (Between Subjects)
 
@@ -168,16 +180,6 @@ RF1aOK <-
   multicon::composite(RF1a.df,
   rel = TRUE, 
   nomiss = 0.6)
-
-midpoint <- data.frame(midpoint = c(
-  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-  4, 4, 4, 4, 4, 4, 4, 4))
 
 # RFPaintWom2_1 - Cleveland Indian Woman & BFPaintWom2_1 - Afro Woman
 # write.csv(Study1Arawdataset, 'Study1A_W')
@@ -617,8 +619,6 @@ Edu2 <- Study2rawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
 #laptop
 Study3rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study3.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
-Study3rawdataset<- Study3rawdataset[-c(1:2), ]  # Getting rid of unneccesary rows
-
 Study3rawdataset <- Study3rawdataset  %>% filter(Race == 3) %>% retype()
 
 Study3rawdataset <- mutate(Study3rawdataset, Condition_S3 = ifelse(is.na(Study3rawdataset$B1_1), 1, 0)) # creating condition variable
@@ -900,3 +900,196 @@ Edu3 <- Study3rawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
 
 ```
 
+
+```{r Study 4 - Load in Data}
+
+# imac
+# Study2rawdataset <- read.csv("/Users/jujlopez/Documents/Redface/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
+#laptop
+Study4rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study4.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
+Study4rawdataset<- Study4rawdataset[-c(1:6), ]  # Getting rid of unneccesary rows
+
+Study4rawdataset <- Study4rawdataset  %>% filter(Race == 3) %>% retype()
+
+```
+
+```{r BF OK}
+BFS4.raw <- Study4rawdataset %>% dplyr::select(
+  B1_1, B1_2, B1_3, B1_4,
+  B2_1, B2_2, B2_3, B2_4,
+  B3_1, B3_2, B3_3, B3_4)
+
+BF.4Key = c(1, -1, 1, -1, 
+           1, -1, 1, -1,
+           1, -1, 1, -1) #Reverse Scoring Items
+
+BFS4.r <-
+  reverse.code(BF.4Key,
+               BFS4.raw,
+               mini = 1,
+               maxi = 7)
+
+BFS4.comp <-
+  multicon::composite(BFS4.r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+BFS4.OK <- as.data.frame(BFS4.comp)
+
+```
+
+```{r RF OK}
+RFS4.raw <- Study4rawdataset %>% dplyr::select(
+  R1_1, R1_2, R1_3, R1_4, 
+  R2_1, R2_2, R2_3, R2_4,
+  R3_1, R3_2, R3_3, R3_4)
+
+RFS4.r <-
+  reverse.code(BF.4Key,
+               RFS4.raw,
+               mini = 1,
+               maxi = 7)
+
+RFS4.comp <-
+  multicon::composite(RFS4.r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+RFS4.OK <- as.data.frame(RFS4.comp)
+
+```
+
+T-test between RFOK and BFOK
+
+```{r T test}
+t.test(RFS4.comp, BFS4.comp, paired = TRUE)
+t.test(midpoint, BFS4.comp, paired = TRUE)
+t.test(midpoint, RFS4.comp, paired = TRUE)
+```
+
+```{r RacismMini}
+BRM.4raw <- Study4rawdataset %>% dplyr::select(
+  BlkRacismMini_1, BlkRacismMini_2, BlkRacismMini_3, BlkRacismMini_4, 
+  BlkRacismMini_5, BlkRacismMini_6, BlkRacismMini_7, BlkRacismMini_8, 
+  BlkRacismMini_9, BlkRacismMini_10
+)
+
+RM.4key = c(1, -1, 1, -1, 
+           -1, -1, -1, 1,
+           1, 1
+           )
+
+BRM.4r <- reverse.code(RM.4key,
+                      BRM.4raw,
+                      mini = 1,
+                      max = 7)
+
+BRM_S4 <- multicon::composite(BRM.4r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+BRM.4df <- as.data.frame(BRM_S4)
+
+NRM.4raw <- Study4rawdataset %>% dplyr::select(
+  NtvRacismMini_1, NtvRacismMini_2, NtvRacismMini_3, BtvRacismMini_4, 
+  NtvRacismMini_5, NtvRacismMini_6, NtvRacismMini_7, NtvRacismMini_8, 
+  NtvRacismMini_9, NtvRacismMini_10
+)
+
+NRM.4r <- reverse.code(RM.4key,
+                      NRM.4raw,
+                      mini = 1,
+                      max = 7)
+
+NRM_S4 <- multicon::composite(NRM.4r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+NRM.4df <- as.data.frame(NRM_S4)
+
+```
+
+```{r Invisibility}
+BIN.4raw <- Study4rawdataset %>% dplyr::select(
+  BlkContemporaryInvis_1, BlkContemporaryInvis_2, BlkContemporaryInvis_3,
+  BlkContemporaryInvis_4, BlkContemporaryInvis_5, BlkContemporaryInvis_6
+  )
+
+IN.4key = c(1, -1, 1, 
+            1, 1, 1)
+
+BIN.4r <- reverse.code(IN.4key,
+                      BIN.4raw,
+                      mini = 1,
+                      max = 7)
+
+BIN_S4 <- multicon::composite(BIN.4r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+BIN.4df <- as.data.frame(BIN_S4)
+
+NIN.4raw <- Study4rawdataset %>% dplyr::select(
+  NtvContemporaryInvis_1, NtvContemporaryInvis_2, NtvContemporaryInvis_3,
+  NtvContemporaryInvis_4, NtvContemporaryInvis_5, NtvContemporaryInvis_6)
+
+NIN.4r <- reverse.code(IN.4key,
+                      NIN.4raw,
+                      mini = 1,
+                      max = 7)
+
+NIN_S4 <- multicon::composite(NIN.4r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+NIN.4df <- as.data.frame(NIN_S4)
+
+```
+
+```{r B Linear Regression OK~RM}
+
+```
+
+```{r N Linear Regression OK~RM}
+
+```
+
+
+```{r Mediation}
+X <- Study3rawdataset$Condition_S3
+M1 <- IN_S3
+M2 <- RM_S3
+Y <- OK_S3
+Data <- data.frame(X=Study3rawdataset$Condition_S3, Y=OK_S3, M1=IN_S3, M2=RM_S3)
+
+multipleMediation <- '
+    Y ~ b1 * M1 + b2 * M2 + c * X
+    M1 ~ a1 * X
+    M2 ~ a2 * X
+    indirect1 := a1 * b1
+    indirect2 := a2 * b2
+    total    := c + (a1 * b1) + (a2 * b2)
+    M1 ~~ M2 
+'
+fit <- sem(model = multipleMediation, data = Data)
+summary(fit)  
+
+```
+
+Demographics
+
+```{r Demographics}
+# N = 170
+
+# Gender Women = 57.6
+table(Study3rawdataset$Gender)
+
+# Age = 22.41
+table(Study3rawdataset$Age)
+
+# FGC Status = 88.2%
+Edu3 <- Study3rawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
+
+```
