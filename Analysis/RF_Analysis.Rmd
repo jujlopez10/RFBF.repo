@@ -19,7 +19,7 @@ library(haven)
 library(tidyr)
 library(lavaan)
 
-install.packages("lavaan")
+# install.packages("lavaan")
 # install.packages("tidyr")
 # devtools::install_github("hadley/tidyverse")
 
@@ -778,7 +778,11 @@ BRM.3r <- reverse.code(RM.3key,
                       mini = 1,
                       max = 7)
 
-BRM.3df <- as.data.frame(BRM.r)
+BRM.3 <- multicon::composite(BRM.3r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+BRM.3df <- as.data.frame(BRM.3r)
 
 NRM.3raw <- Study3rawdataset %>% dplyr::select(
   NtvRacismMini_1, NtvRacismMini_2, NtvRacismMini_3, BtvRacismMini_4, 
@@ -790,6 +794,10 @@ NRM.3r <- reverse.code(RM.3key,
                       NRM.3raw,
                       mini = 1,
                       max = 7)
+
+NRM.3 <- multicon::composite(NRM.3r,
+  rel = TRUE, 
+  nomiss = 0.6)
 
 NRM.3df <- as.data.frame(NRM.3r)
 
@@ -993,7 +1001,7 @@ BRM_S4 <- multicon::composite(BRM.4r,
 BRM.4df <- as.data.frame(BRM_S4)
 
 NRM.4raw <- Study4rawdataset %>% dplyr::select(
-  NtvRacismMini_1, NtvRacismMini_2, NtvRacismMini_3, BtvRacismMini_4, 
+  NtvRacismMini_1, NtvRacismMini_2, NtvRacismMini_3, NtvRacismMini_4, 
   NtvRacismMini_5, NtvRacismMini_6, NtvRacismMini_7, NtvRacismMini_8, 
   NtvRacismMini_9, NtvRacismMini_10
 )
