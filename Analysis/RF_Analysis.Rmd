@@ -18,6 +18,7 @@ library(hablar)
 library(haven)
 library(tidyr)
 library(lavaan)
+library(dplyr)
 
 # install.packages("lavaan")
 # install.packages("tidyr")
@@ -25,6 +26,158 @@ library(lavaan)
 
 ```
 
+```{r Study 2 midpoint}
+midpoint2 <- data.frame(midpoint = c(
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4))
+```
+
+```{r Study 3 midpoint}
+midpoint3 <- data.frame(midpoint = c(
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4))
+```
+
+```{r Study 4 midpoint}
+midpoint4 <- data.frame(midpoint = c(
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4
+  ))
+```
 
 ```{r Functions to center things }
 
@@ -55,7 +208,7 @@ gmc <- function(MOD, grp)
 
 ```
 
-```{r}
+```{r Study1 midpoint}
 midpoint <- data.frame(midpoint = c(
   4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
   4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
@@ -73,10 +226,10 @@ Study 1A - T-Test between Redface and Blackface (Between Subjects)
 ```{r Study 1A - Load in Data}
 
 # imac
-# Study1Arawdataset <- read.csv("/Users/jujlopez/Documents/Redface/Data/Study1A.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+Study1Arawdataset <- read.csv("/Users/jujlopez/Documents/Redface/RFBF/RFBF.repo/Data/Study1A.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
 # laptop
-Study1Arawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study1A.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+# Study1Arawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study1A.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
 Study1Arawdataset<- Study1Arawdataset[-c(1:10), ]  
 
@@ -222,10 +375,10 @@ Study 1B - T-Test between Redface and Blackface (Between Subjects)
 ```{r Study 1B - Load in Data}
 
 #imac
-# Study1Brawdataset <- read.csv("/Users/jujlopez/Documents/Redface/Data/Study1B.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+Study1Brawdataset <- read.csv("/Users/jujlopez/Documents/Redface/RFBF/RFBF.repo/Data/Study1B.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
 # laptop
-Study1Brawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study1B.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+# Study1Brawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study1B.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
 Study1Brawdataset<- Study1Brawdataset[-c(1:2), ]  
 
@@ -351,10 +504,10 @@ Prepping Data
 ```{r Study 2 - Load in Data}
 
 # imac
-# Study2rawdataset <- read.csv("/Users/jujlopez/Documents/Redface/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+Study2rawdataset <- read.csv("/Users/jujlopez/Documents/Redface/RFBF/RFBF.repo/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
 #laptop
-Study2rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+# Study2rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
 Study2rawdataset<- Study2rawdataset[-c(1:2), ]  # Getting rid of unneccesary rows
 
@@ -422,8 +575,8 @@ T-test between RFOK and BFOK
 
 ```{r T test}
 t.test(RFS2.OK, BFS2.OK, paired = FALSE)
-t.test(midpoint, BFS2.OK, paired = FALSE)
-t.test(midpoint, RFS2.OK, paired = FALSE)
+t.test(midpoint2, BFS2.OK, paired = FALSE)
+t.test(midpoint2, RFS2.OK, paired = FALSE)
 
 ```
 
@@ -542,6 +695,8 @@ NtvRM_S2 <-
   rel = TRUE, 
   nomiss = 0.6)
 
+RM_S2 <- dplyr::coalesce(BlkRM_S2, NtvRM_S2)
+
 NRM.2df <- as.data.frame(NtvRM_S2)
 
 RM2_1 <- dplyr::coalesce(BRM.2df$RacismMini_1, NRM.2df$RacismMini_1.1)
@@ -614,10 +769,10 @@ Edu2 <- Study2rawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
 ```{r Study 3 - Load in Data}
 
 # imac
-# Study2rawdataset <- read.csv("/Users/jujlopez/Documents/Redface/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+Study3rawdataset <- read.csv("/Users/jujlopez/Documents/Redface/RFBF/RFBF.repo/Data/Study3.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
 #laptop
-Study3rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study3.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+# Study3rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study3.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
 Study3rawdataset <- Study3rawdataset  %>% filter(Race == 3) %>% retype()
 
@@ -681,8 +836,8 @@ T-test between RFOK and BFOK
 
 ```{r T test}
 t.test(RFS3.OK, BFS3.OK, paired = FALSE)
-t.test(midpoint, BFS3.OK, paired = FALSE)
-t.test(midpoint, RFS3.OK, paired = FALSE)
+t.test(midpoint3, BFS3.OK, paired = FALSE)
+t.test(midpoint3, RFS3.OK, paired = FALSE)
 
 ```
 
@@ -871,7 +1026,7 @@ IN_S3 <- multicon::composite(IN_S3.df,
 ```
 
 
-```{r Mediation}
+```{r Serial Mediation}
 X <- Study3rawdataset$Condition_S3
 M1 <- IN_S3
 M2 <- RM_S3
@@ -895,13 +1050,16 @@ summary(fit)
 Demographics
 
 ```{r Demographics}
-# N = 170
+# N = 735
 
-# Gender Women = 57.6
+# Gender Women = 48.2
 table(Study3rawdataset$Gender)
 
 # Age = 22.41
-table(Study3rawdataset$Age)
+Study3rawdataset[Study3rawdataset$IPAddress == "174.240.10.13", "Age"] <- as.integer(39)
+Study3rawdataset[Study3rawdataset$IPAddress == "162.232.177.134", "Age"] <- as.integer(28)
+
+sd(as.numeric(Study3rawdataset$Age), na.rm = TRUE)
 
 # FGC Status = 88.2%
 Edu3 <- Study3rawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
@@ -912,10 +1070,10 @@ Edu3 <- Study3rawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
 ```{r Study 4 - Load in Data}
 
 # imac
-# Study2rawdataset <- read.csv("/Users/jujlopez/Documents/Redface/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+Study4rawdataset <- read.csv("/Users/jujlopez/Documents/Redface/RFBF/RFBF.repo/Data/Study4.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
 #laptop
-Study4rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study4.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+# Study4rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study4.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
 Study4rawdataset<- Study4rawdataset[-c(1:6), ]  # Getting rid of unneccesary rows
 
@@ -965,6 +1123,8 @@ RFS4.comp <-
   rel = TRUE, 
   nomiss = 0.6)
 
+view(RFS4.comp)
+
 RFS4.OK <- as.data.frame(RFS4.comp)
 
 ```
@@ -973,8 +1133,8 @@ T-test between RFOK and BFOK
 
 ```{r T test}
 t.test(RFS4.comp, BFS4.comp, paired = TRUE)
-t.test(midpoint, BFS4.comp, paired = TRUE)
-t.test(midpoint, RFS4.comp, paired = TRUE)
+t.test(midpoint4, BFS4.comp, paired = FALSE)
+t.test(midpoint4, RFS4.comp, paired = FALSE)
 ```
 
 ```{r RacismMini}
