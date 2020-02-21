@@ -915,11 +915,15 @@ Edu3 <- Study3rawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
 # Study2rawdataset <- read.csv("/Users/jujlopez/Documents/Redface/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
 #laptop
-Study4rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study4.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+Study4rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study4_Random.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
 Study4rawdataset<- Study4rawdataset[-c(1:6), ]  # Getting rid of unneccesary rows
 
 Study4rawdataset <- Study4rawdataset  %>% filter(Race == 3) %>% retype()
+
+Study3rawdataset <- mutate(Study3rawdataset, Condition_S3 = ifelse(is.na(Study3rawdataset$B1_1), 1, 0))
+
+
 
 ```
 
@@ -1061,7 +1065,7 @@ NIN.4df <- as.data.frame(NIN_S4)
 ```
 
 ```{r N Linear Regression OK~RM}
-
+table1::table1(~NRM.4df BRM.4df| ReservationExperience, data=MascotDataNative)
 ```
 
 
