@@ -5,26 +5,230 @@ date: "3/16/2020"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r Packages} 
+library(tidyverse)
+library(abind)
+library(foreach)
+library(haven)
+library(labelled)
+library(psych)
+library(multicon)
+library(varhandle)
+library(hablar)
+library(haven)
+library(tidyr)
+library(lavaan)
+library(dplyr)
+library(here)
+library(rio)
+
+# install.packages("lavaan")
+# install.packages("tidyr")
+# devtools::install_github("hadley/tidyverse")
+
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r Study 2 midpoint}
+midpoint2 <- data.frame(midpoint = c(
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 4, 4))
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+```{r Functions to center things }
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+center<-function(MOD)
+{
+  centered<-MOD-mean(MOD,na.rm=TRUE)
+  return(centered)
+}
+
+low<-function(MOD)
+{
+  low<-(MOD-mean(MOD,na.rm=TRUE))+sd(MOD, na.rm=TRUE)
+  return(low)
+}
+
+high<-function(MOD)
+{
+  high<-(MOD-mean(MOD, na.rm=TRUE))-sd(MOD, na.rm=TRUE)
+  return(high)
+}
+
+gmc <- function(MOD, grp) 
+  { 
+  gmcentered<- (MOD-tapply(MOD,grp,mean,na.rm=TRUE)[grp])
+  return(gmcentered)
+
+}
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+Prepping Data 
+```{r Study 2 - Load in Data}
+
+# Hannah's imac
+Study2rawdataset <- read.csv("/Users/hframil/Desktop/Julisa/RFBF/RFBF.repo/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
+# imac
+# Study2rawdataset <- read.csv("/Users/jujlopez/Documents/Redface/RFBF/RFBF.repo/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
+#laptop
+# Study2rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
+Study2rawdataset<- Study2rawdataset[-c(1:2), ]  # Getting rid of unneccesary rows
+
+Study2rawdataset <- Study2rawdataset %>% retype()
+
+```
+
+```{r Conditions}
+Study2rawdataset <- mutate(Study2rawdataset, ConditionEffect = ifelse(is.na(Study2rawdataset$BFPaint1), -1, 1)) # creating condition variable
+
+Study2rawdataset <- mutate(Study2rawdataset, Blk0 = ifelse(is.na(Study2rawdataset$BFPaint1), 0, 1)) # Black is 0
+
+Study2rawdataset <- mutate(Study2rawdataset, Ntv0 = ifelse(is.na(Study2rawdataset$BFPaint1), 1, 0)) # Native is 0 
+```
+
+```{r BFOK}
+BFS2.raw <- Study2rawdataset %>% dplyr::select(
+  BFPaint1_1, BFPaint1_2, BFPaint1_3, BFPaint1_4,
+  BFPaintWom1_1, BFPaintWom1_2, BFPaintWom1_3, BFPaintWom1_4,
+  BFGroup1_1, BFGroup1_2, BFGroup1_3, BFGroup1_4,
+  BFPaintMan2_1, BFPaintMan2_2, BFPaintMan2_3, BFPaintMan2_4,
+  BFGroup2_1, BFGroup2_2, BFGroup2_3, BFGroup2_4
+)
+
+BF.Key = c(1, -1, 1, -1, 
+           1, -1, 1, -1,
+           1, -1, 1, -1,
+           1, -1, 1, -1,
+           1, -1, 1, -1) #Reverse Scoring Items
+
+BFS2.r <-
+  reverse.code(BF.Key,
+               BFS2.raw,
+               mini = 1,
+               maxi = 7)
+
+BFS2.comp <-
+  multicon::composite(BFS2.r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+BF_OK <- as.data.frame(BFS2.comp)
+
+```
+
+```{r RFOK}
+RFS2.raw <- Study2rawdataset  %>% dplyr::select(
+  RFPaintGroup2_1, RFPaintGroup2_2, RFPaintGroup2_3, RFPaintGroup2_4, 
+  RFPaintWom1_1, RFPaintWom1_2, RFPaintWom1_3, RFPaintWom1_4, 
+  RFPaintGroup1_1, RFPaintGroup1_2, RFPaintGroup1_3, RFPaintGroup1_4,
+  RFPaintMan2_1, RFPaintMan2_2, RFPaintMan2_3, RFPaintMan2_4, 
+  RFGroup2_1, RFGroup2_2, RFGroup2_3, RFGroup2_4
+  )
+
+RFS2.r <-
+  reverse.code(BF.Key,
+               RFS2.raw,
+               mini = 1,
+               maxi = 7)
+
+RFS2.comp <-
+  multicon::composite(RFS2.r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+RF_OK <- as.data.frame(RFS2.comp)
+
+```
+
+```{r BRM}
+BRM.2raw <- Study2rawdataset %>% dplyr::select(
+  RacismMini_1, RacismMini_2, RacismMini_3, RacismMini_4, 
+  RacismMini_5, RacismMini_6, RacismMini_7, RacismMini_8, 
+  RacismMini_9, RacismMini_10
+)
+
+RM.key = c(1, -1, 1, -1, 
+           -1, -1, -1, 1,
+           1, 1
+           )
+
+BRM.2r <- reverse.code(RM.key,
+                      BRM.2raw,
+                      mini = 1,
+                      max = 7)
+
+BRM.comp <-
+  multicon::composite(BRM.2r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+```
+
+```{r NRM}
+NRM.2raw <- Study2rawdataset %>% dplyr::select(
+  RacismMini_1.1, RacismMini_2.1, RacismMini_3.1, RacismMini_4.1, 
+  RacismMini_5.1, RacismMini_6.1, RacismMini_7.1, RacismMini_8.1, 
+  RacismMini_9.1, RacismMini_10.1
+)
+
+NRM.2r <- reverse.code(RM.key,
+                      NRM.2raw,
+                      mini = 1,
+                      max = 7)
+
+NRM.comp <-
+  multicon::composite(NRM.2r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+```
+
+
+```{r Coalese}
+
+# One column with acceptability values
+Study2rawdataset <- mutate(Study2rawdataset, Acceptability= coalesce(BFS2.comp, RFS2.comp)) 
+
+# One column with racism minimization values
+Study2rawdataset <- mutate(Study2rawdataset, RacismMini = coalesce(BRM.comp, NRM.comp))
+
+```
+
+
+```{r Moderation}
+R1 <- lm(Acceptability ~ 1 + center(RacismMini) + ConditionEffect + center(RacismMini)*ConditionEffect, data = Study2rawdataset)
+summary(R1)
+```
+
+```{r Black Simple Slopes}
+B1 <- lm(Acceptability ~ 1 + center(RacismMini) + Blk0 + center(RacismMini)*Blk0, data = Study2rawdataset)
+summary(B1)
+```
+
+```{r Native Simple Slopes}
+N1 <- lm(Acceptability ~ 1 + center(RacismMini) + Ntv0 + center(RacismMini)*Ntv0, data = Study2rawdataset)
+summary(N1)
+```
+
