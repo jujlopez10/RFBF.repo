@@ -19,6 +19,8 @@ library(haven)
 library(tidyr)
 library(lavaan)
 library(dplyr)
+library(here)
+library(rio)
 
 # install.packages("lavaan")
 # install.packages("tidyr")
@@ -225,8 +227,11 @@ Study 1A - T-Test between Redface and Blackface (Between Subjects)
 
 ```{r Study 1A - Load in Data}
 
-# imac
-Study1Arawdataset <- read.csv("/Users/jujlopez/Documents/Redface/RFBF/RFBF.repo/Data/Study1A.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+# Hannah's imac
+Study1Arawdataset <- read.csv("/Users/hframil/Desktop/Julisa/RFBF/RFBF.repo/Data/Study1A.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
+# Julisa's imac
+#Study1Arawdataset <- read.csv("/Users/jujlopez/Documents/Redface/RFBF/RFBF.repo/Data/Study1A.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
 # laptop
 # Study1Arawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study1A.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
@@ -374,8 +379,11 @@ Study 1B - T-Test between Redface and Blackface (Between Subjects)
 
 ```{r Study 1B - Load in Data}
 
+# Hannah's imac
+Study1Brawdataset <- read.csv("/Users/hframil/Desktop/Julisa/RFBF/RFBF.repo/Data/Study1B.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
 #imac
-Study1Brawdataset <- read.csv("/Users/jujlopez/Documents/Redface/RFBF/RFBF.repo/Data/Study1B.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+# Study1Brawdataset <- read.csv("/Users/jujlopez/Documents/Redface/RFBF/RFBF.repo/Data/Study1B.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
 # laptop
 # Study1Brawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study1B.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
@@ -503,8 +511,11 @@ Study 2
 Prepping Data 
 ```{r Study 2 - Load in Data}
 
+# Hannah's imac
+Study2rawdataset <- read.csv("/Users/hframil/Desktop/Julisa/RFBF/RFBF.repo/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
 # imac
-Study2rawdataset <- read.csv("/Users/jujlopez/Documents/Redface/RFBF/RFBF.repo/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+# Study2rawdataset <- read.csv("/Users/jujlopez/Documents/Redface/RFBF/RFBF.repo/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
 #laptop
 # Study2rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)

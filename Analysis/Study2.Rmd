@@ -232,3 +232,42 @@ N1 <- lm(Acceptability ~ 1 + center(RacismMini) + Ntv0 + center(RacismMini)*Ntv0
 summary(N1)
 ```
 
+
+```{r Mediation}
+X <- Study2rawdataset$ConditionEffect
+M <- Study2rawdataset$RacismMini
+Y <- Study2rawdataset$Acceptability
+Data <- data.frame(X=Study2rawdataset$ConditionEffect, Y=Study2rawdataset$Acceptability, M=Study2rawdataset$RacismMini)
+
+model <- ' # direct effect
+             Y ~ c*X
+           # mediator
+             M ~ a*X
+             Y ~ b*M
+           # indirect effect (a*b)
+             ab := a*b
+           # total effect
+             total := c + (a*b)
+         '
+
+fit <- sem(model, data = Data)
+summary(fit)
+
+```
+
+
+Demographics
+
+```{r Demographics}
+# N = 170
+
+# Gender Women = 57.6
+table(Study2rawdataset$Gender)
+
+# Age = 22.41
+table(Study2rawdataset$Age)
+
+# FGC Status = 88.2%
+Edu2 <- Study2rawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
+
+```
