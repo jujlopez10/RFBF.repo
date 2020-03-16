@@ -5,26 +5,286 @@ date: "3/16/2020"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+
+```{r Packages} 
+library(tidyverse)
+library(abind)
+library(foreach)
+library(haven)
+library(labelled)
+library(psych)
+library(multicon)
+library(varhandle)
+library(hablar)
+library(haven)
+library(tidyr)
+library(lavaan)
+library(dplyr)
+library(here)
+library(rio)
+
+# install.packages("lavaan")
+# install.packages("tidyr")
+# devtools::install_github("hadley/tidyverse")
+
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+## Functions to center things 
+```{r functions}
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+center<-function(MOD)
+{
+  centered<-MOD-mean(MOD,na.rm=TRUE)
+  return(centered)
+}
 
-```{r cars}
-summary(cars)
+low<-function(MOD)
+{
+  low<-(MOD-mean(MOD,na.rm=TRUE))+sd(MOD, na.rm=TRUE)
+  return(low)
+}
+
+high<-function(MOD)
+{
+  high<-(MOD-mean(MOD, na.rm=TRUE))-sd(MOD, na.rm=TRUE)
+  return(high)
+}
+
+gmc <- function(MOD, grp) 
+  { 
+  gmcentered<- (MOD-tapply(MOD,grp,mean,na.rm=TRUE)[grp])
+  return(gmcentered)
+
+}
+
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+```{r Study 3 - Load in Data}
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+# Hannah's imac
+Study3rawdataset <- read.csv("/Users/hframil/Desktop/Julisa/RFBF/RFBF.repo/Data/Study3.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
+# imac
+# Study3rawdataset <- read.csv("/Users/jujlopez/Documents/Redface/RFBF/RFBF.repo/Data/Study3.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
+#laptop
+# Study3rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study3.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
+Study3rawdataset <- Study3rawdataset  %>% filter(Race == 3) %>% retype()
+
+Study3rawdataset <- mutate(Study3rawdataset, Condition_S3 = ifelse(is.na(Study3rawdataset$B1_1), 1, 0)) # creating condition variable
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r Conditions}
+Study2rawdataset <- mutate(Study2rawdataset, ConditionEffect = ifelse(is.na(Study2rawdataset$BFPaint1), -1, 1)) # creating condition variable
+
+Study2rawdataset <- mutate(Study2rawdataset, Blk0 = ifelse(is.na(Study2rawdataset$BFPaint1), 0, 1)) # Black is 0
+
+Study2rawdataset <- mutate(Study2rawdataset, Ntv0 = ifelse(is.na(Study2rawdataset$BFPaint1), 1, 0)) # Native is 0 
+```
+
+
+```{r}
+Study3rawdataset <- mutate(Study3rawdataset, ConditionEffect = ifelse(is.na(Study3rawdataset$B1_1), -1, 1)) # creating condition variable
+
+Study3rawdataset <- mutate(Study3rawdataset, Blk0 = ifelse(is.na(Study3rawdataset$B1_1), 0, 1)) # creating condition variable
+
+Study3rawdataset <- mutate(Study3rawdataset, Ntv0 = ifelse(is.na(Study3rawdataset$B1_1), 1, 0)) # creating condition variable
+```
+
+
+```{r BF OK}
+BFS3.raw <- Study3rawdataset %>% dplyr::select(
+  B1_1, B1_2, B1_3, B1_4,
+  B2_1, B2_2, B2_3, B2_4,
+  B3_1, B3_2, B3_3, B3_4,
+  B5_1, B5_2, B5_3, B5_4,
+  B6_1, B6_2, B6_3, B6_4
+)
+
+BF.Key = c(1, -1, 1, -1, 
+           1, -1, 1, -1,
+           1, -1, 1, -1,
+           1, -1, 1, -1,
+           1, -1, 1, -1) #Reverse Scoring Items
+
+BFS3.r <-
+  reverse.code(BF.Key,
+               BFS3.raw,
+               mini = 1,
+               maxi = 7)
+
+BFOK <-
+  multicon::composite(BFS3.r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+```
+
+```{r RF OK}
+RFS3.raw <- Study3rawdataset %>% dplyr::select(
+  R1_1, R1_2, R1_3, R1_4, 
+  R2_1, R2_2, R2_3, R2_4,
+  R3_1, R3_2, R3_3, R3_4,
+  R5_1, R5_2, R5_3, R5_4,
+  R6_1, R6_2, R6_3, R6_4
+  )
+
+RFS3.r <-
+  reverse.code(BF.Key,
+               RFS3.raw,
+               mini = 1,
+               maxi = 7)
+
+RFOK <-
+  multicon::composite(RFS3.r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+```
+
+
+```{r RacismMini}
+BRM.3raw <- Study3rawdataset %>% dplyr::select(
+  BlkRacismMini_1, BlkRacismMini_2, BlkRacismMini_3, BlkRacismMini_4, 
+  BlkRacismMini_5, BlkRacismMini_6, BlkRacismMini_7, BlkRacismMini_8, 
+  BlkRacismMini_9, BlkRacismMini_10
+)
+
+RM.3key = c(1, -1, 1, -1, 
+           -1, -1, -1, 1,
+           1, 1
+           )
+
+BRM.3r <- reverse.code(RM.3key,
+                      BRM.3raw,
+                      mini = 1,
+                      max = 7)
+
+BRM <- multicon::composite(BRM.3r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+```
+
+```{r}
+NRM.3raw <- Study3rawdataset %>% dplyr::select(
+  NtvRacismMini_1, NtvRacismMini_2, NtvRacismMini_3, BtvRacismMini_4, 
+  NtvRacismMini_5, NtvRacismMini_6, NtvRacismMini_7, NtvRacismMini_8, 
+  NtvRacismMini_9, NtvRacismMini_10
+)
+
+NRM.3r <- reverse.code(RM.3key,
+                      NRM.3raw,
+                      mini = 1,
+                      max = 7)
+
+NRM <- multicon::composite(NRM.3r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+
+```
+
+
+```{r Invisibility}
+BIN.3raw <- Study3rawdataset %>% dplyr::select(
+  BlkContemporaryInvis_1, BlkContemporaryInvis_2, BlkContemporaryInvis_3,
+  BlkContemporaryInvis_4, BlkContemporaryInvis_5, BlkContemporaryInvis_6
+  )
+
+IN.3key = c(1, -1, 1, 
+            1, 1, 1)
+
+BIN.r <- reverse.code(IN.3key,
+                      BIN.3raw,
+                      mini = 1,
+                      max = 7)
+
+BIN <- multicon::composite(BIN.r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+```
+
+
+```{r}
+NIN.3raw <- Study3rawdataset %>% dplyr::select(
+  NtvContemporaryInvis_1, NtvContemporaryInvis_2, NtvContemporaryInvis_3,
+  NtvContemporaryInvis_4, NtvContemporaryInvis_5, NtvContemporaryInvis_6)
+
+NIN.r <- reverse.code(IN.3key,
+                      NIN.3raw,
+                      mini = 1,
+                      max = 7)
+
+NIN <- multicon::composite(NIN.r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+```
+
+```{r Coalese}
+# One column with acceptability values
+Study3rawdataset <- mutate(Study3rawdataset, Acceptability = coalesce(BFOK, RFOK)) 
+
+# One column with racism minimization values
+Study3rawdataset <- mutate(Study3rawdataset, RacismMini = coalesce(BRM, NRM))
+
+# One column with invisibility values
+Study3rawdataset <- mutate(Study3rawdataset, Invisibility = coalesce(BIN, NIN))
+```
+
+```{r Moderation}
+R1 <- lm(Acceptability ~ 1 + center(RacismMini) + center(Invisibility) + ConditionEffect + center(RacismMini)*ConditionEffect + center(Invisibility)*ConditionEffect, data = Study3rawdataset)
+summary(R1)
+```
+
+```{r N Simple Slopes}
+
+```
+
+
+```{r Serial Mediation}
+X <- Study3rawdataset$Condition_S3
+M1 <- IN_S3
+M2 <- RM_S3
+Y <- OK_S3
+Data <- data.frame(X=Study3rawdataset$Condition_S3, Y=OK_S3, M1=IN_S3, M2=RM_S3)
+
+multipleMediation <- '
+    Y ~ b1 * M1 + b2 * M2 + c * X
+    M1 ~ a1 * X
+    M2 ~ a2 * X
+    indirect1 := a1 * b1
+    indirect2 := a2 * b2
+    total    := c + (a1 * b1) + (a2 * b2)
+    M1 ~~ M2 
+'
+fit <- sem(model = multipleMediation, data = Data)
+summary(fit)  
+
+```
+
+Demographics
+
+```{r Demographics}
+# N = 735
+
+# Gender Women = 48.2
+table(Study3rawdataset$Gender)
+
+# Age = 22.41
+Study3rawdataset[Study3rawdataset$IPAddress == "174.240.10.13", "Age"] <- as.integer(39)
+Study3rawdataset[Study3rawdataset$IPAddress == "162.232.177.134", "Age"] <- as.integer(28)
+
+sd(as.numeric(Study3rawdataset$Age), na.rm = TRUE)
+
+# FGC Status = 88.2%
+Edu3 <- Study3rawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
+
+```
