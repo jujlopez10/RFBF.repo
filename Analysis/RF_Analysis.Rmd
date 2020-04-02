@@ -512,13 +512,13 @@ Prepping Data
 ```{r Study 2 - Load in Data}
 
 # Hannah's imac
-Study2rawdataset <- read.csv("/Users/hframil/Desktop/Julisa/RFBF/RFBF.repo/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+# Study2rawdataset <- read.csv("/Users/hframil/Desktop/Julisa/RFBF/RFBF.repo/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
 # imac
 # Study2rawdataset <- read.csv("/Users/jujlopez/Documents/Redface/RFBF/RFBF.repo/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
 #laptop
-# Study2rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+Study2rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
 Study2rawdataset<- Study2rawdataset[-c(1:2), ]  # Getting rid of unneccesary rows
 
@@ -585,7 +585,9 @@ RFS2.OK <- as.data.frame(RFS2.comp)
 T-test between RFOK and BFOK
 
 ```{r T test}
-t.test(RFS2.OK, BFS2.OK, paired = FALSE)
+t.test(RFS2.OK, BFS2.OK, paired = FALSE, var.equal = TRUE)
+
+?t.test()
 t.test(midpoint2, BFS2.OK, paired = FALSE)
 t.test(midpoint2, RFS2.OK, paired = FALSE)
 
