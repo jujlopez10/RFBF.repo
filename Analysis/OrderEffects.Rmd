@@ -1,0 +1,639 @@
+---
+title: "OrderEffects"
+author: "Julisa"
+date: "4/2/2020"
+output: html_document
+---
+
+
+```{r Packages} 
+library(dplyr)
+library(tidyverse)
+library(tidyr)
+library(abind)
+library(foreach)
+library(haven)
+library(labelled)
+library(psych)
+library(multicon)
+library(varhandle)
+library(hablar)
+library(haven)
+library(tidyr)
+library(lavaan)
+library(dplyr)
+library(here)
+library(rio)
+library(JSmediation)
+library(ggplot2)
+library(ggpubr)
+library(rstatix)
+
+```
+
+Study 1A - T-Test between Redface and Blackface (Between Subjects)
+
+```{r Study 1A - Load in Data}
+
+Study1Arawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study1A_Randomized.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
+Study1Arawdataset<- Study1Arawdataset[-c(1:9), ]  # deleting unnecessary rows
+
+Study1Arawdataset <- Study1Arawdataset %>% retype()
+
+```
+
+Creating Conditions
+
+```{r}
+Study1Arawdataset <- mutate(Study1Arawdataset, RFfirst_1 = ifelse(DO.BR.FL_37 == "FL_108|FL_92", 1, 0))
+Study1Arawdataset <- mutate(Study1Arawdataset, BFfirst_1 = ifelse(DO.BR.FL_37 == "FL_92|FL_108", 1, 0))
+Study1Arawdataset <- mutate(Study1Arawdataset, RFfirst_2 = ifelse(DO.BR.FL_44 == "FL_140|FL_124", 1, 0))
+Study1Arawdataset <- mutate(Study1Arawdataset, BFfirst_2 = ifelse(DO.BR.FL_44 == "FL_124|FL_140", 1, 0))
+```
+
+
+```{r BF first - BF OK}
+
+BF1a <- Study1Arawdataset %>% filter(BFfirst_1 == 1 | BFfirst_2 == 1) %>% dplyr::select(
+  Q112_1, Q112_2, Q112_3, Q112_4,
+  Q113_1, Q113_2, Q113_3, Q113_4,
+  Q116_1, Q116_2, Q116_3, Q116_4,
+  Q136_1, Q136_2, Q136_3, Q136_4,
+  Q163_1, Q163_2, Q163_3, Q163_4)
+
+BF.All.Key = c(
+  1, -1, 1, -1, 
+  1, -1, 1, -1,
+  1, -1, 1, -1,
+  1, -1, 1, -1,
+  1, -1, 1, -1)
+
+BF1a.r <-
+  reverse.code(BF.All.Key,
+               BF1a,
+               mini = 1,
+               maxi = 7)
+
+BF1a.df <- as.data.frame(BF1a.r)
+
+BFman_1 <- dplyr::coalesce(BF1a.df$Q112_1, BF1a.df$Q163_1)
+BFman_2 <- dplyr::coalesce(BF1a.df$`Q112_2-`, BF1a.df$`Q163_2-`)
+BFman_3 <- dplyr::coalesce(BF1a.df$Q112_3, BF1a.df$Q163_3)
+BFman_4 <- dplyr::coalesce(BF1a.df$`Q112_4-`, BF1a.df$`Q163_4-`)
+
+BFwom_1 <- BF1a.df$Q113_1
+BFwom_2 <- BF1a.df$`Q113_2-`
+BFwom_3 <- BF1a.df$Q113_3
+BFwom_4 <- BF1a.df$`Q113_4-`
+
+BFgroup_1 <- dplyr::coalesce(BF1a.df$Q116_1, BF1a.df$Q136_1)
+BFgroup_2 <- dplyr::coalesce(BF1a.df$`Q116_2-`, BF1a.df$`Q136_2-`)
+BFgroup_3 <- dplyr::coalesce(BF1a.df$Q116_3, BF1a.df$Q136_3)
+BFgroup_4 <- dplyr::coalesce(BF1a.df$`Q116_4-`, BF1a.df$`Q136_4-`)
+
+BF1a.df <- data.frame(
+  BFman_1, BFman_2, BFman_3, BFman_4,
+  BFwom_1, BFwom_2, BFwom_3, BFwom_4,
+  BFgroup_1, BFgroup_2, BFgroup_3, BFgroup_4
+)
+
+BFfirst_BF <-
+  multicon::composite(BF1a.df,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+```
+
+
+```{r BF first - RF OK}
+RF1a <- Study1Arawdataset %>% filter(BFfirst_1 == 1 | BFfirst_2 == 1) %>% dplyr::select(
+  Q156_1, Q156_2, Q156_3, Q156_4,
+  Q123_1, Q123_2, Q123_3, Q123_4,
+  Q160_1, Q160_2, Q160_3, Q160_4,
+  Q143_1, Q143_2, Q143_3, Q143_4,
+  Q148_1, Q148_2, Q148_3, Q148_4)
+
+RF1a.r <-
+  reverse.code(BF.All.Key,
+               RF1a,
+               mini = 1,
+               maxi = 7)
+
+RF1a.df <- as.data.frame(RF1a.r)
+
+RFman_1 <- dplyr::coalesce(RF1a.df$Q148_1, RF1a.df$Q123_1)
+RFman_2 <- dplyr::coalesce(RF1a.df$`Q148_2-`, RF1a.df$`Q123_2-`)
+RFman_3 <- dplyr::coalesce(RF1a.df$Q148_3, RF1a.df$Q123_3)
+RFman_4 <- dplyr::coalesce(RF1a.df$`Q148_4-`, RF1a.df$`Q123_4-`)
+
+RFwom_1 <- RF1a.df$Q160_1
+RFwom_2 <- RF1a.df$`Q160_2-`
+RFwom_3 <- RF1a.df$Q160_3
+RFwom_4 <- RF1a.df$`Q160_4-`
+
+RFgroup_1 <- dplyr::coalesce(RF1a.df$Q143_1, RF1a.df$Q156_1)
+RFgroup_2 <- dplyr::coalesce(RF1a.df$`Q143_2-`, RF1a.df$`Q156_2-`)
+RFgroup_3 <- dplyr::coalesce(RF1a.df$Q143_3, RF1a.df$Q156_3)
+RFgroup_4 <- dplyr::coalesce(RF1a.df$`Q143_4-`, RF1a.df$`Q156_4-`)
+
+RF1a.df <- data.frame(
+  RFman_1, RFman_2, RFman_3, RFman_4,
+  RFwom_1, RFwom_2, RFwom_3, RFwom_4,
+  RFgroup_1, RFgroup_2, RFgroup_3, RFgroup_4
+)
+
+BFfirst_RF <-
+  multicon::composite(RF1a.df,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+# RFPaintWom2_1 - Cleveland Indian Woman & BFPaintWom2_1 - Afro Woman
+# write.csv(Study1Arawdataset, 'Study1A_W')
+```
+
+```{r RF first - BF OK}
+
+BF1a <- Study1Arawdataset %>% filter(RFfirst_1 == 1 | RFfirst_2 == 1) %>% dplyr::select(
+  Q112_1, Q112_2, Q112_3, Q112_4,
+  Q113_1, Q113_2, Q113_3, Q113_4,
+  Q116_1, Q116_2, Q116_3, Q116_4,
+  Q136_1, Q136_2, Q136_3, Q136_4,
+  Q163_1, Q163_2, Q163_3, Q163_4)
+
+BF.All.Key = c(
+  1, -1, 1, -1, 
+  1, -1, 1, -1,
+  1, -1, 1, -1,
+  1, -1, 1, -1,
+  1, -1, 1, -1)
+
+BF1a.r <-
+  reverse.code(BF.All.Key,
+               BF1a,
+               mini = 1,
+               maxi = 7)
+
+BF1a.df <- as.data.frame(BF1a.r)
+
+BFman_1 <- dplyr::coalesce(BF1a.df$Q112_1, BF1a.df$Q163_1)
+BFman_2 <- dplyr::coalesce(BF1a.df$`Q112_2-`, BF1a.df$`Q163_2-`)
+BFman_3 <- dplyr::coalesce(BF1a.df$Q112_3, BF1a.df$Q163_3)
+BFman_4 <- dplyr::coalesce(BF1a.df$`Q112_4-`, BF1a.df$`Q163_4-`)
+
+BFwom_1 <- BF1a.df$Q113_1
+BFwom_2 <- BF1a.df$`Q113_2-`
+BFwom_3 <- BF1a.df$Q113_3
+BFwom_4 <- BF1a.df$`Q113_4-`
+
+BFgroup_1 <- dplyr::coalesce(BF1a.df$Q116_1, BF1a.df$Q136_1)
+BFgroup_2 <- dplyr::coalesce(BF1a.df$`Q116_2-`, BF1a.df$`Q136_2-`)
+BFgroup_3 <- dplyr::coalesce(BF1a.df$Q116_3, BF1a.df$Q136_3)
+BFgroup_4 <- dplyr::coalesce(BF1a.df$`Q116_4-`, BF1a.df$`Q136_4-`)
+
+BF1a.df <- data.frame(
+  BFman_1, BFman_2, BFman_3, BFman_4,
+  BFwom_1, BFwom_2, BFwom_3, BFwom_4,
+  BFgroup_1, BFgroup_2, BFgroup_3, BFgroup_4
+)
+
+RFfirst_BF <-
+  multicon::composite(BF1a.df,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+```
+
+
+```{r RF first - RF OK}
+RF1a <- Study1Arawdataset %>% filter(RFfirst_1 == 1 | RFfirst_2 == 1) %>% dplyr::select(
+  Q156_1, Q156_2, Q156_3, Q156_4,
+  Q123_1, Q123_2, Q123_3, Q123_4,
+  Q160_1, Q160_2, Q160_3, Q160_4,
+  Q143_1, Q143_2, Q143_3, Q143_4,
+  Q148_1, Q148_2, Q148_3, Q148_4)
+
+RF1a.r <-
+  reverse.code(BF.All.Key,
+               RF1a,
+               mini = 1,
+               maxi = 7)
+
+RF1a.df <- as.data.frame(RF1a.r)
+
+RFman_1 <- dplyr::coalesce(RF1a.df$Q148_1, RF1a.df$Q123_1)
+RFman_2 <- dplyr::coalesce(RF1a.df$`Q148_2-`, RF1a.df$`Q123_2-`)
+RFman_3 <- dplyr::coalesce(RF1a.df$Q148_3, RF1a.df$Q123_3)
+RFman_4 <- dplyr::coalesce(RF1a.df$`Q148_4-`, RF1a.df$`Q123_4-`)
+
+RFwom_1 <- RF1a.df$Q160_1
+RFwom_2 <- RF1a.df$`Q160_2-`
+RFwom_3 <- RF1a.df$Q160_3
+RFwom_4 <- RF1a.df$`Q160_4-`
+
+RFgroup_1 <- dplyr::coalesce(RF1a.df$Q143_1, RF1a.df$Q156_1)
+RFgroup_2 <- dplyr::coalesce(RF1a.df$`Q143_2-`, RF1a.df$`Q156_2-`)
+RFgroup_3 <- dplyr::coalesce(RF1a.df$Q143_3, RF1a.df$Q156_3)
+RFgroup_4 <- dplyr::coalesce(RF1a.df$`Q143_4-`, RF1a.df$`Q156_4-`)
+
+RF1a.df <- data.frame(
+  RFman_1, RFman_2, RFman_3, RFman_4,
+  RFwom_1, RFwom_2, RFwom_3, RFwom_4,
+  RFgroup_1, RFgroup_2, RFgroup_3, RFgroup_4
+)
+
+RFfirst_RF <-
+  multicon::composite(RF1a.df,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+# RFPaintWom2_1 - Cleveland Indian Woman & BFPaintWom2_1 - Afro Woman
+# write.csv(Study1Arawdataset, 'Study1A_W')
+```
+
+```{r T test}
+t.test(BFfirst_BF, BFfirst_RF, paired = TRUE)
+t.test(BFfirst_BF, RFfirst_BF, paired = FALSE)
+t.test(BFfirst_RF, RFfirst_RF, paired = FALSE)
+```
+
+Study 1B - T-Test between Redface and Blackface (Between Subjects)
+
+```{r Study 1B - Load in Data}
+
+Study1Brawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study1B_Randomized.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
+Study1Brawdataset<- Study1Brawdataset[-c(1:2), ]  
+
+Study1Brawdataset <- Study1Brawdataset %>% retype()
+```
+
+Creating Conditions
+
+```{r Creating Conditions}
+Study1Brawdataset <- mutate(Study1Brawdataset, RFfirst_1 = ifelse(DO.BR.FL_166 == "FL_216", 1, 0))
+Study1Brawdataset <- mutate(Study1Brawdataset, BFfirst_1 = ifelse(DO.BR.FL_166 == "FL_192", 1, 0))
+Study1Brawdataset <- mutate(Study1Brawdataset, RFfirst_2 = ifelse(DO.BR.FL_236 == "FL_256", 1, 0))
+Study1Brawdataset <- mutate(Study1Brawdataset, BFfirst_2 = ifelse(DO.BR.FL_236 == "FL_237", 1, 0))
+```
+
+
+```{r BF First - BF OK}
+BF1b <- Study1Brawdataset %>% filter(BFfirst_1 == 1 | BFfirst_2 == 1) %>% dplyr::select(
+  BFPaint1_1, BFPaint1_2, BFPaint1_3, BFPaint1_4,
+  BFPaintWom1_1, BFPaintWom1_2, BFPaintWom1_3, BFPaintWom1_4,
+  BFGroup1_1, BFGroup1_2, BFGroup1_3, BFGroup1_4,
+  BFPaintMan2_1, BFPaintMan2_2, BFPaintMan2_3, BFPaintMan2_4,
+  BFGroup2_1, BFGroup2_2, BFGroup2_3, BFGroup2_4)
+
+BF.All.Key = c(
+  1, -1, 1, -1, 
+  1, -1, 1, -1,
+  1, -1, 1, -1,
+  1, -1, 1, -1,
+  1, -1, 1, -1)
+
+BF1b.r <-
+  reverse.code(BF.All.Key,
+               BF1b,
+               mini = 1,
+               maxi = 7)
+
+BF1b.df <- as.data.frame(BF1b.r)
+
+BF1bman_1 <- dplyr::coalesce(BF1b.df$BFPaint1_1, BF1b.df$BFPaintMan2_1)
+BF1bman_2 <- dplyr::coalesce(BF1b.df$`BFPaint1_2-`, BF1b.df$`BFPaintMan2_2-`)
+BF1bman_3 <- dplyr::coalesce(BF1b.df$BFPaint1_3, BF1b.df$BFPaintMan2_3)
+BF1bman_4 <- dplyr::coalesce(BF1b.df$`BFPaint1_4-`, BF1b.df$`BFPaintMan2_4-`)
+
+BF1bwom_1 <- BF1b.df$BFPaintWom1_1
+BF1bwom_2 <- BF1b.df$`BFPaintWom1_2-`
+BF1bwom_3 <- BF1b.df$BFPaintWom1_3
+BF1bwom_4 <- BF1b.df$`BFPaintWom1_4-`
+
+BF1bgroup_1 <- dplyr::coalesce(BF1b.df$BFGroup1_1, BF1b.df$BFGroup2_1)
+BF1bgroup_2 <- dplyr::coalesce(BF1b.df$`BFGroup1_2-`, BF1b.df$`BFGroup2_2-`)
+BF1bgroup_3 <- dplyr::coalesce(BF1b.df$BFGroup1_3, BF1b.df$BFGroup2_3)
+BF1bgroup_4 <- dplyr::coalesce(BF1b.df$`BFGroup1_4-`, BF1b.df$`BFGroup2_4-`)
+
+BF1b.df <- data.frame(
+  BF1bman_1, BF1bman_2, BF1bman_3, BF1bman_4,
+  BF1bwom_1, BF1bwom_2, BF1bwom_3, BF1bwom_4,
+  BF1bgroup_1, BF1bgroup_2, BF1bgroup_3, BF1bgroup_4
+)
+
+BFfirst_BF <-
+  multicon::composite(BF1b.df,
+  rel = TRUE, 
+  nomiss = 0.6)
+```
+
+```{r BF First - RF OK}
+RF1b <- Study1Brawdataset %>% filter(BFfirst_1 == 1 | BFfirst_2 == 1) %>% dplyr::select(
+  RFPaintGroup2_1, RFPaintGroup2_2, RFPaintGroup2_3, RFPaintGroup2_4,
+  RFPaintWom1_1, RFPaintWom1_2, RFPaintWom1_3, RFPaintWom1_4,
+  RFPaintGroup1_1, RFPaintGroup1_2, RFPaintGroup1_3, RFPaintGroup1_4,
+  RFPaintMan2_1, RFPaintMan2_2, RFPaintMan2_3, RFPaintMan2_4,
+  RFGroup2_1, RFGroup2_2, RFGroup2_3, RFGroup2_4)
+
+RF1b.r <-
+  reverse.code(BF.All.Key,
+               RF1b,
+               mini = 1,
+               maxi = 7)
+
+RF1b.df <- as.data.frame(RF1b.r)
+
+RF1bman_1 <- dplyr::coalesce(RF1b.df$RFPaintGroup2_1, RF1b.df$RFPaintMan2_1)
+RF1bman_2 <- dplyr::coalesce(RF1b.df$`RFPaintGroup2_2-`, RF1b.df$`RFPaintMan2_2-`)
+RF1bman_3 <- dplyr::coalesce(RF1b.df$RFPaintGroup2_3, RF1b.df$RFPaintMan2_3)
+RF1bman_4 <- dplyr::coalesce(RF1b.df$`RFPaintGroup2_4-`, RF1b.df$`RFPaintMan2_4-`)
+
+RF1bwom_1 <- RF1b.df$RFPaintWom1_1
+RF1bwom_2 <- RF1b.df$`RFPaintWom1_2-`
+RF1bwom_3 <- RF1b.df$RFPaintWom1_3
+RF1bwom_4 <- RF1b.df$`RFPaintWom1_4-`
+
+RF1bgroup_1 <- dplyr::coalesce(RF1b.df$RFPaintGroup1_1, RF1b.df$RFGroup2_1)
+RF1bgroup_2 <- dplyr::coalesce(RF1b.df$`RFPaintGroup1_2-`, RF1b.df$`RFGroup2_2-`)
+RF1bgroup_3 <- dplyr::coalesce(RF1b.df$RFPaintGroup1_3, RF1b.df$RFGroup2_3)
+RF1bgroup_4 <- dplyr::coalesce(RF1b.df$`RFPaintGroup1_4-`, RF1b.df$`RFGroup2_4-`)
+
+RF1b.df <- data.frame(
+  RF1bman_1, RF1bman_2, RF1bman_3, RF1bman_4,
+  RF1bwom_1, RF1bwom_2, RF1bwom_3, RF1bwom_4,
+  RF1bgroup_1, RF1bgroup_2, RF1bgroup_3, RF1bgroup_4
+)
+
+BFfirst_RF <-
+  multicon::composite(RF1b.df,
+  rel = TRUE, 
+  nomiss = 0.6)
+```
+
+```{r RF First - BF OK}
+BF1b <- Study1Brawdataset %>% filter(RFfirst_1 == 1 | RFfirst_2 == 1) %>% dplyr::select(
+  BFPaint1_1, BFPaint1_2, BFPaint1_3, BFPaint1_4,
+  BFPaintWom1_1, BFPaintWom1_2, BFPaintWom1_3, BFPaintWom1_4,
+  BFGroup1_1, BFGroup1_2, BFGroup1_3, BFGroup1_4,
+  BFPaintMan2_1, BFPaintMan2_2, BFPaintMan2_3, BFPaintMan2_4,
+  BFGroup2_1, BFGroup2_2, BFGroup2_3, BFGroup2_4)
+
+BF1b.r <-
+  reverse.code(BF.All.Key,
+               BF1b,
+               mini = 1,
+               maxi = 7)
+
+BF1b.df <- as.data.frame(BF1b.r)
+
+BF1bman_1 <- dplyr::coalesce(BF1b.df$BFPaint1_1, BF1b.df$BFPaintMan2_1)
+BF1bman_2 <- dplyr::coalesce(BF1b.df$`BFPaint1_2-`, BF1b.df$`BFPaintMan2_2-`)
+BF1bman_3 <- dplyr::coalesce(BF1b.df$BFPaint1_3, BF1b.df$BFPaintMan2_3)
+BF1bman_4 <- dplyr::coalesce(BF1b.df$`BFPaint1_4-`, BF1b.df$`BFPaintMan2_4-`)
+
+BF1bwom_1 <- BF1b.df$BFPaintWom1_1
+BF1bwom_2 <- BF1b.df$`BFPaintWom1_2-`
+BF1bwom_3 <- BF1b.df$BFPaintWom1_3
+BF1bwom_4 <- BF1b.df$`BFPaintWom1_4-`
+
+BF1bgroup_1 <- dplyr::coalesce(BF1b.df$BFGroup1_1, BF1b.df$BFGroup2_1)
+BF1bgroup_2 <- dplyr::coalesce(BF1b.df$`BFGroup1_2-`, BF1b.df$`BFGroup2_2-`)
+BF1bgroup_3 <- dplyr::coalesce(BF1b.df$BFGroup1_3, BF1b.df$BFGroup2_3)
+BF1bgroup_4 <- dplyr::coalesce(BF1b.df$`BFGroup1_4-`, BF1b.df$`BFGroup2_4-`)
+
+BF1b.df <- data.frame(
+  BF1bman_1, BF1bman_2, BF1bman_3, BF1bman_4,
+  BF1bwom_1, BF1bwom_2, BF1bwom_3, BF1bwom_4,
+  BF1bgroup_1, BF1bgroup_2, BF1bgroup_3, BF1bgroup_4
+)
+
+RFfirst_BF <-
+  multicon::composite(BF1b.df,
+  rel = TRUE, 
+  nomiss = 0.6)
+```
+
+```{r RF First - RF OK}
+RF1b <- Study1Brawdataset %>% filter(RFfirst_1 == 1 | RFfirst_2 == 1) %>% dplyr::select(
+  RFPaintGroup2_1, RFPaintGroup2_2, RFPaintGroup2_3, RFPaintGroup2_4,
+  RFPaintWom1_1, RFPaintWom1_2, RFPaintWom1_3, RFPaintWom1_4,
+  RFPaintGroup1_1, RFPaintGroup1_2, RFPaintGroup1_3, RFPaintGroup1_4,
+  RFPaintMan2_1, RFPaintMan2_2, RFPaintMan2_3, RFPaintMan2_4,
+  RFGroup2_1, RFGroup2_2, RFGroup2_3, RFGroup2_4)
+
+RF1b.r <-
+  reverse.code(BF.All.Key,
+               RF1b,
+               mini = 1,
+               maxi = 7)
+
+RF1b.df <- as.data.frame(RF1b.r)
+
+RF1bman_1 <- dplyr::coalesce(RF1b.df$RFPaintGroup2_1, RF1b.df$RFPaintMan2_1)
+RF1bman_2 <- dplyr::coalesce(RF1b.df$`RFPaintGroup2_2-`, RF1b.df$`RFPaintMan2_2-`)
+RF1bman_3 <- dplyr::coalesce(RF1b.df$RFPaintGroup2_3, RF1b.df$RFPaintMan2_3)
+RF1bman_4 <- dplyr::coalesce(RF1b.df$`RFPaintGroup2_4-`, RF1b.df$`RFPaintMan2_4-`)
+
+RF1bwom_1 <- RF1b.df$RFPaintWom1_1
+RF1bwom_2 <- RF1b.df$`RFPaintWom1_2-`
+RF1bwom_3 <- RF1b.df$RFPaintWom1_3
+RF1bwom_4 <- RF1b.df$`RFPaintWom1_4-`
+
+RF1bgroup_1 <- dplyr::coalesce(RF1b.df$RFPaintGroup1_1, RF1b.df$RFGroup2_1)
+RF1bgroup_2 <- dplyr::coalesce(RF1b.df$`RFPaintGroup1_2-`, RF1b.df$`RFGroup2_2-`)
+RF1bgroup_3 <- dplyr::coalesce(RF1b.df$RFPaintGroup1_3, RF1b.df$RFGroup2_3)
+RF1bgroup_4 <- dplyr::coalesce(RF1b.df$`RFPaintGroup1_4-`, RF1b.df$`RFGroup2_4-`)
+
+RF1b.df <- data.frame(
+  RF1bman_1, RF1bman_2, RF1bman_3, RF1bman_4,
+  RF1bwom_1, RF1bwom_2, RF1bwom_3, RF1bwom_4,
+  RF1bgroup_1, RF1bgroup_2, RF1bgroup_3, RF1bgroup_4
+)
+
+RFfirst_RF <-
+  multicon::composite(RF1b.df,
+  rel = TRUE, 
+  nomiss = 0.6)
+```
+
+```{r T test}
+t.test(BFfirst_BF, BFfirst_RF, paired = TRUE)
+t.test(RFfirst_BF, RFfirst_RF, paired = TRUE)
+t.test(BFfirst_BF, RFfirst_BF, paired = FALSE)
+t.test(BFfirst_RF, RFfirst_RF, paired = FALSE)
+```
+
+```{r Study 4}
+Study4rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study4_Randomized.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
+Study4rawdataset<- Study4rawdataset[-c(1:6), ]  # Getting rid of unneccesary rows
+
+data <- Study4rawdataset  %>%  retype()
+
+# Prepping by setting NA to 0 for Race variables 
+data$Race_1[is.na(data$Race_1)] <- 0
+data$Race_2[is.na(data$Race_2)] <- 0
+data$Race_3[is.na(data$Race_3)] <- 0
+data$Race_4[is.na(data$Race_4)] <- 0
+data$Race_5[is.na(data$Race_5)] <- 0
+data$Race_6[is.na(data$Race_6)] <- 0
+data$Race_7[is.na(data$Race_7)] <- 0
+
+# Creating Race variable 
+data <- data %>% mutate(Race = case_when(
+                        Race_1 == 1 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "1",
+                        Race_1 == 0 & Race_2 == 1 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "2",
+                        Race_1 == 0 & Race_2 == 0 & Race_3 == 1 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "3",
+                        Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 1 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "4",
+                        Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 1 & Race_6 == 0 & Race_7 == 0 ~ "5",
+                        Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 1 & Race_7 == 0 ~ "6",
+                        Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 1 ~ "7"))
+
+# Filtering by race 
+Study4rawdataset <- data %>% filter(Race == 3)
+
+```
+
+```{r Creating Conditions}
+Study4rawdataset <- mutate(Study4rawdataset, RFfirst = ifelse(DO.BR.FL_285 == "FL_304", 1, 0))
+Study4rawdataset <- mutate(Study4rawdataset, BFfirst = ifelse(DO.BR.FL_285 == "FL_288", 1, 0))
+Study4rawdataset <- mutate(Study4rawdataset, Random = ifelse(DO.BR.FL_285 == "FL_418", 1, 0))
+```
+
+
+```{r BFF - BF OK}
+BFS4.raw <- Study4rawdataset %>% filter(BFfirst == 1) %>% dplyr::select(
+  B1_1, B1_2, B1_3, B1_4,
+  B2_1, B2_2, B2_3, B2_4,
+  B3_1, B3_2, B3_3, B3_4)
+
+BF.4Key = c(1, -1, 1, -1, 
+           1, -1, 1, -1,
+           1, -1, 1, -1) #Reverse Scoring Items
+
+BFS4.r <-
+  reverse.code(BF.4Key,
+               BFS4.raw,
+               mini = 1,
+               maxi = 7)
+
+BFF_BFOK <-
+  multicon::composite(BFS4.r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+
+```
+
+```{r BFF - RF OK}
+RFS4.raw <- Study4rawdataset %>% filter(BFfirst == 1) %>% dplyr::select(
+  R1_1, R1_2, R1_3, R1_4, 
+  R2_1, R2_2, R2_3, R2_4,
+  R3_1, R3_2, R3_3, R3_4)
+
+RFS4.r <-
+  reverse.code(BF.4Key,
+               RFS4.raw,
+               mini = 1,
+               maxi = 7)
+
+BFF_RFOK <-
+  multicon::composite(RFS4.r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+```
+
+
+```{r RFF - BF OK}
+BFS4.raw <- Study4rawdataset %>% filter(RFfirst == 1) %>% dplyr::select(
+  B1_1, B1_2, B1_3, B1_4,
+  B2_1, B2_2, B2_3, B2_4,
+  B3_1, B3_2, B3_3, B3_4)
+
+BF.4Key = c(1, -1, 1, -1, 
+           1, -1, 1, -1,
+           1, -1, 1, -1) #Reverse Scoring Items
+
+BFS4.r <-
+  reverse.code(BF.4Key,
+               BFS4.raw,
+               mini = 1,
+               maxi = 7)
+
+RFF_BFOK <-
+  multicon::composite(BFS4.r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+```
+
+```{r RFF - RF OK}
+RFS4.raw <- Study4rawdataset %>% filter(RFfirst == 1) %>% dplyr::select(
+  R1_1, R1_2, R1_3, R1_4, 
+  R2_1, R2_2, R2_3, R2_4,
+  R3_1, R3_2, R3_3, R3_4)
+
+RFS4.r <-
+  reverse.code(BF.4Key,
+               RFS4.raw,
+               mini = 1,
+               maxi = 7)
+
+RFF_RFOK <-
+  multicon::composite(RFS4.r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+```
+
+
+```{r Random - BF OK}
+BFS4.raw <- Study4rawdataset %>% filter(Random == 1) %>% dplyr::select(
+  B1_1, B1_2, B1_3, B1_4,
+  B2_1, B2_2, B2_3, B2_4,
+  B3_1, B3_2, B3_3, B3_4)
+
+BF.4Key = c(1, -1, 1, -1, 
+           1, -1, 1, -1,
+           1, -1, 1, -1) #Reverse Scoring Items
+
+BFS4.r <-
+  reverse.code(BF.4Key,
+               BFS4.raw,
+               mini = 1,
+               maxi = 7)
+
+Random_BFOK <-
+  multicon::composite(BFS4.r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+```
+
+```{r Random - RF OK}
+RFS4.raw <- Study4rawdataset %>% filter(Random == 1) %>% dplyr::select(
+  R1_1, R1_2, R1_3, R1_4, 
+  R2_1, R2_2, R2_3, R2_4,
+  R3_1, R3_2, R3_3, R3_4)
+
+RFS4.r <-
+  reverse.code(BF.4Key,
+               RFS4.raw,
+               mini = 1,
+               maxi = 7)
+
+Random_RFOK <-
+  multicon::composite(RFS4.r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+```
+
+
+```{r T test}
+t.test(BFF_BFOK, BFF_RFOK, paired = TRUE)
+t.test(RFF_BFOK, RFF_RFOK, paired = TRUE)
+t.test(Random_BFOK, Random_RFOK, paired = TRUE)
+```
