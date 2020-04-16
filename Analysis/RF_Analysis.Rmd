@@ -228,22 +228,46 @@ Study 1A - T-Test between Redface and Blackface (Between Subjects)
 
 ```{r Study 1A - Load in Data}
 
-# Hannah's imac
-Study1Arawdataset <- read.csv("/Users/hframil/Desktop/Julisa/RFBF/RFBF.repo/Data/Study1A.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+# Load in dataset
+Study1Arawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study1A_Randomized.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
-# Julisa's imac
-#Study1Arawdataset <- read.csv("/Users/jujlopez/Documents/Redface/RFBF/RFBF.repo/Data/Study1A.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+# Delete extra row that qualtrics downloads
+Study1Arawdataset<- Study1Arawdataset[-1, ]  
 
-# laptop
-# Study1Arawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study1A.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+# Retyping data so replace empty cells with NAs
+data <- Study1Arawdataset %>% retype()
 
-Study1Arawdataset<- Study1Arawdataset[-c(1:10), ]  
-
-Study1Arawdataset <- Study1Arawdataset %>% retype()
-
+# Creating target dummy variable
 # Study1Arawdataset <- mutate(Study1Arawdataset, Condition = ifelse(is.na(Study1Arawdataset$Q43), 1, 0))
 
+# Prepping by setting NA to 0 for Race variables 
+data$Race_1[is.na(data$Race_1)] <- 0
+data$Race_2[is.na(data$Race_2)] <- 0
+data$Race_3[is.na(data$Race_3)] <- 0
+data$Race_4[is.na(data$Race_4)] <- 0
+data$Race_5[is.na(data$Race_5)] <- 0
+data$Race_6[is.na(data$Race_6)] <- 0
+data$Race_7[is.na(data$Race_7)] <- 0
+
+# Creating Race variable 
+data <- data %>% mutate(Race = case_when(
+                    Race_1 == 1 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "1",
+                    Race_1 == 0 & Race_2 == 1 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "2",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 1 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "3",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 1 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "4",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 1 & Race_6 == 0 & Race_7 == 0 ~ "5",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 1 & Race_7 == 0 ~ "6",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 1 ~ "7"))
+
+# Filter by Finished survey & deleting first three rows, these were previews 
+Study1Arawdataset <- data %>% filter(V10 == 1)
+
+Study1Arawdataset <- Study1Arawdataset[-c(1:3), ]
+
+
+
 ```
+
 
 ```{r BF OK}
 
@@ -347,24 +371,30 @@ RF1aOK <-
 
 ```{r T test}
 t.test(BF1aOK, RF1aOK, paired = TRUE)
-t.test(midpoint, BF1aOK, paired = FALSE)
-t.test(midpoint, RF1aOK, paired = FALSE)
+t.test(BF1aOK, midpoint, paired = FALSE)
+t.test(RF1aOK, midpoint, paired = FALSE)
 ```
 
 Study 1A - Demographics
 
 ```{r Demographics}
-# N = 77
+# N = 75
 
 # Gender = 55.8%
 
 table(Study1Arawdataset$Gender)
 
 # Age = 19.02
-table(Study1Arawdataset$Age)
+Study1Arawdataset$Age[Study1Arawdataset$Age == "18 years"] <- 18
+Age <- as.numeric(Study1Arawdataset$Age)
+mean(Age, na.rm = TRUE)
 
 # FGC Status (N = 52)
 Edu1A <- Study1Arawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
+
+
+# Race (43 = AA, 3 = Blk, 16 = White, 2 = Latino, 2 = Middle Eastern, 1 = Native)
+table(Study1Arawdataset$Race)
 
 
 ```
@@ -380,18 +410,33 @@ Study 1B - T-Test between Redface and Blackface (Between Subjects)
 
 ```{r Study 1B - Load in Data}
 
-# Hannah's imac
-Study1Brawdataset <- read.csv("/Users/hframil/Desktop/Julisa/RFBF/RFBF.repo/Data/Study1B.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+Study1Brawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study1B_Randomized.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
-#imac
-# Study1Brawdataset <- read.csv("/Users/jujlopez/Documents/Redface/RFBF/RFBF.repo/Data/Study1B.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+Study1Brawdataset<- Study1Brawdataset[-1, ]  
 
-# laptop
-# Study1Brawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study1B.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+data <- Study1Brawdataset %>% retype()
 
-Study1Brawdataset<- Study1Brawdataset[-c(1:2), ]  
+# Prepping by setting NA to 0 for Race variables 
+data$Race_1[is.na(data$Race_1)] <- 0
+data$Race_2[is.na(data$Race_2)] <- 0
+data$Race_3[is.na(data$Race_3)] <- 0
+data$Race_4[is.na(data$Race_4)] <- 0
+data$Race_5[is.na(data$Race_5)] <- 0
+data$Race_6[is.na(data$Race_6)] <- 0
+data$Race_7[is.na(data$Race_7)] <- 0
 
-Study1Brawdataset <- Study1Brawdataset %>% retype()
+# Creating Race variable 
+data <- data %>% mutate(Race = case_when(
+                    Race_1 == 1 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "1",
+                    Race_1 == 0 & Race_2 == 1 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "2",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 1 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "3",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 1 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "4",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 1 & Race_6 == 0 & Race_7 == 0 ~ "5",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 1 & Race_7 == 0 ~ "6",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 1 ~ "7"))
+
+# Filter by Finished survey & deleting first three rows, these were previews 
+Study1Brawdataset <- data %>% filter(V10 == 1)
 ```
 
 ```{r BF OK}
@@ -401,6 +446,13 @@ BF1b <- Study1Brawdataset %>% dplyr::select(
   BFGroup1_1, BFGroup1_2, BFGroup1_3, BFGroup1_4,
   BFPaintMan2_1, BFPaintMan2_2, BFPaintMan2_3, BFPaintMan2_4,
   BFGroup2_1, BFGroup2_2, BFGroup2_3, BFGroup2_4)
+
+BF.All.Key = c(
+  1, -1, 1, -1, 
+  1, -1, 1, -1,
+  1, -1, 1, -1,
+  1, -1, 1, -1,
+  1, -1, 1, -1)
 
 BF1b.r <-
   reverse.code(BF.All.Key,
@@ -489,16 +541,21 @@ t.test(midpoint, RF1bOK, paired = FALSE)
 Study 1B - Demographics
 
 ```{r Demographics}
-# N = 103
+# N = 102
 
 # Gender
 table(Study1Brawdataset$Gender)
 
 # Age
-table(Study1Brawdataset$Age)
+Study1Brawdataset$Age[Study1Brawdataset$Age == 1997] <- 22
+Age <- as.numeric(Study1Brawdataset$Age)
+mean(Age, na.rm = TRUE)
 
 # FGC Status
 Edu1B <- Study1Brawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
+
+# Race
+table(Study1Brawdataset$Race)
 ```
 
 Study 1B - Power analysis
@@ -512,20 +569,40 @@ Study 2
 Prepping Data 
 ```{r Study 2 - Load in Data}
 
-# Hannah's imac
-# Study2rawdataset <- read.csv("/Users/hframil/Desktop/Julisa/RFBF/RFBF.repo/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
-
-# imac
-# Study2rawdataset <- read.csv("/Users/jujlopez/Documents/Redface/RFBF/RFBF.repo/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
-
-#laptop
 Study2rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
-Study2rawdataset<- Study2rawdataset[-c(1:2), ]  # Getting rid of unneccesary rows
+Study2rawdataset<- Study2rawdataset[-1, ]  # Getting rid of unneccesary rows
 
 Study2rawdataset <- Study2rawdataset %>% retype()
 
 Study2rawdataset <- mutate(Study2rawdataset, Condition_S2 = ifelse(is.na(Study2rawdataset$BFPaint1), 1, 0)) # creating condition variable
+
+data <- Study2rawdataset
+
+# Prepping by setting NA to 0 for Race variables 
+data$Race_1[is.na(data$Race_1)] <- 0
+data$Race_2[is.na(data$Race_2)] <- 0
+data$Race_3[is.na(data$Race_3)] <- 0
+data$Race_4[is.na(data$Race_4)] <- 0
+data$Race_5[is.na(data$Race_5)] <- 0
+data$Race_6[is.na(data$Race_6)] <- 0
+data$Race_7[is.na(data$Race_7)] <- 0
+
+# Creating Race variable 
+data <- data %>% mutate(Race = case_when(
+                    Race_1 == 1 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "1",
+                    Race_1 == 0 & Race_2 == 1 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "2",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 1 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "3",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 1 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "4",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 1 & Race_6 == 0 & Race_7 == 0 ~ "5",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 1 & Race_7 == 0 ~ "6",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 1 ~ "7"))
+
+# Filter by Race
+Study2rawdataset <- data %>% filter(Race == 3) 
+
+# Filter out the not finished surveys 
+Study2rawdataset <- Study2rawdataset %>% filter(V10 == 1)
 
 ```
 
@@ -587,8 +664,6 @@ T-test between RFOK and BFOK
 
 ```{r T test}
 t.test(RFS2.OK, BFS2.OK, paired = FALSE, var.equal = TRUE)
-
-?t.test()
 t.test(midpoint2, BFS2.OK, paired = FALSE)
 t.test(midpoint2, RFS2.OK, paired = FALSE)
 
@@ -648,25 +723,19 @@ Differences in Racism Minimization Predicting Difference in Acceptability
 #BRM.2raw <- Study2rawdataset %>% dplyr::select(
 #  RacismMini_1, RacismMini_2, RacismMini_3, RacismMini_4, 
 #  RacismMini_5, RacismMini_6, RacismMini_7, RacismMini_8, 
- # RacismMini_9, RacismMini_10
-#)
+# RacismMini_9, RacismMini_10)
 
 BRM.2raw <- Study2rawdataset %>% dplyr::select(
   RacismMini_8, 
   RacismMini_9, RacismMini_10
 )
 
-RM.key = c(1,
-           1, 1
-           )
+# RM.key = c(1, -1, 1, -1, -1, -1, -1, 1, 1, 1)
 
-BRM.2r <- reverse.code(RM.key,
-                      BRM.2raw,
-                      mini = 1,
-                      max = 7)
+# BRM.2r <- reverse.code(RM.key, BRM.2raw, mini = 1, max = 7)
 
 BlkRM_S2 <-
-  multicon::composite(BRM.2r,
+  multicon::composite(BRM.2raw,
   rel = TRUE, 
   nomiss = 0.6)
 
@@ -675,21 +744,16 @@ BRM.2df <- as.data.frame(BlkRM_S2)
 #NRM.2raw <- Study2rawdataset %>% dplyr::select(
  # RacismMini_1.1, RacismMini_2.1, RacismMini_3.1, RacismMini_4.1, 
  # RacismMini_5.1, RacismMini_6.1, RacismMini_7.1, RacismMini_8.1, 
- # RacismMini_9.1, RacismMini_10.1
-#)
+ # RacismMini_9.1, RacismMini_10.1)
 
 NRM.2raw <- Study2rawdataset %>% dplyr::select(
   RacismMini_8.1, 
-  RacismMini_9.1, RacismMini_10.1
-)
+  RacismMini_9.1, RacismMini_10.1)
 
-NRM.2r <- reverse.code(RM.key,
-                      NRM.2raw,
-                      mini = 1,
-                      max = 7)
+# NRM.2r <- reverse.code(RM.key, NRM.2raw, mini = 1, max = 7)
 
 NtvRM_S2 <-
-  multicon::composite(NRM.2r,
+  multicon::composite(NRM.2raw,
   rel = TRUE, 
   nomiss = 0.6)
 
@@ -727,13 +791,16 @@ summary(fit)
 Demographics
 
 ```{r Demographics}
-# N = 170
+# N = 148
 
 # Gender Women = 57.6
 table(Study2rawdataset$Gender)
 
 # Age = 22.41
-table(Study2rawdataset$Age)
+Study2rawdataset$Age[Study2rawdataset$Age == "18 years"] <- 18
+Study2rawdataset$Age[Study2rawdataset$Age == "19 years"] <- 19
+Age <- as.numeric(Study2rawdataset$Age)
+mean(Age, na.rm = TRUE)
 
 # FGC Status = 88.2%
 Edu2 <- Study2rawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
@@ -742,13 +809,38 @@ Edu2 <- Study2rawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
 
 ```{r Study 3 - Load in Data}
 
-# imac
-# Study3rawdataset <- read.csv("/Users/jujlopez/Documents/Redface/RFBF/RFBF.repo/Data/Study3.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+Study3rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study3_Randomized.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
-#laptop
-Study3rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study3.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+Study3rawdataset<- Study3rawdataset[-1, ]  # Getting rid of unneccesary rows
 
-Study3rawdataset <- Study3rawdataset  %>% filter(Race == 3) %>% retype()
+Study3rawdataset <- Study3rawdataset %>% retype()
+
+data <- Study3rawdataset
+
+# Prepping by setting NA to 0 for Race variables 
+data$Race_1[is.na(data$Race_1)] <- 0
+data$Race_2[is.na(data$Race_2)] <- 0
+data$Race_3[is.na(data$Race_3)] <- 0
+data$Race_4[is.na(data$Race_4)] <- 0
+data$Race_5[is.na(data$Race_5)] <- 0
+data$Race_6[is.na(data$Race_6)] <- 0
+data$Race_7[is.na(data$Race_7)] <- 0
+
+# Creating Race variable 
+data <- data %>% mutate(Race = case_when(
+                    Race_1 == 1 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "1",
+                    Race_1 == 0 & Race_2 == 1 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "2",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 1 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "3",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 1 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "4",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 1 & Race_6 == 0 & Race_7 == 0 ~ "5",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 1 & Race_7 == 0 ~ "6",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 1 ~ "7"))
+
+# Filter by Race
+Study3rawdataset <- data %>% filter(Race == 3) 
+
+# Filter out the not finished surveys 
+Study3rawdataset <- Study3rawdataset %>% filter(V10 == 1)
 
 Study3rawdataset <- mutate(Study3rawdataset, Condition_S3 = ifelse(is.na(Study3rawdataset$B1_1), 1, 0)) # creating condition variable
 
@@ -869,50 +961,32 @@ Differences in Racism Minimization Predicting Difference in Acceptability
 
 ```{r RacismMini}
 # BRM.3raw <- Study3rawdataset %>% dplyr::select(
- # BlkRacismMini_1, BlkRacismMini_2, BlkRacismMini_3, BlkRacismMini_4, 
- # BlkRacismMini_5, BlkRacismMini_6, BlkRacismMini_7, BlkRacismMini_8, 
- # BlkRacismMini_9, BlkRacismMini_10
-#)
+# BlkRacismMini_1, BlkRacismMini_2, BlkRacismMini_3, # BlkRacismMini_4, BlkRacismMini_5, BlkRacismMini_6, # BlkRacismMini_7, BlkRacismMini_8, BlkRacismMini_9, # BlkRacismMini_10)
 
-BRM.3raw <- Study3rawdataset %>% dplyr::select(BlkRacismMini_8, 
-  BlkRacismMini_9, BlkRacismMini_10
-)
+BRM.3raw <- Study3rawdataset %>% dplyr::select(
+  BlkRacismMini_8, BlkRacismMini_9, BlkRacismMini_10)
 
-RM.3key = c(1,
-           1, 1
-           )
+# BRM.3r <- reverse.code(RM.3key, BRM.3raw, mini = 1, max = 7)
 
-BRM.3r <- reverse.code(RM.3key,
-                      BRM.3raw,
-                      mini = 1,
-                      max = 7)
-
-BRM.3 <- multicon::composite(BRM.3r,
+BRM.3 <- multicon::composite(BRM.3raw,
   rel = TRUE, 
   nomiss = 0.6)
 
-BRM.3df <- as.data.frame(BRM.3r)
+BRM.3df <- as.data.frame(BRM.3raw)
 
 #NRM.3raw <- Study3rawdataset %>% dplyr::select(
- # NtvRacismMini_1, NtvRacismMini_2, NtvRacismMini_3, BtvRacismMini_4, 
- # NtvRacismMini_5, NtvRacismMini_6, NtvRacismMini_7, NtvRacismMini_8, 
-  #NtvRacismMini_9, NtvRacismMini_10
-#)
+# NtvRacismMini_1, NtvRacismMini_2, NtvRacismMini_3, # BtvRacismMini_4, NtvRacismMini_5, NtvRacismMini_6, # NtvRacismMini_7, NtvRacismMini_8, NtvRacismMini_9, # NtvRacismMini_10)
 
-NRM.3raw <- Study3rawdataset %>% dplyr::select(NtvRacismMini_8, 
-  NtvRacismMini_9, NtvRacismMini_10
-)
+NRM.3raw <- Study3rawdataset %>% dplyr::select(
+  NtvRacismMini_8, NtvRacismMini_9, NtvRacismMini_10)
 
-NRM.3r <- reverse.code(RM.3key,
-                      NRM.3raw,
-                      mini = 1,
-                      max = 7)
+# NRM.3r <- reverse.code(RM.3key, NRM.3raw, mini = 1, max = 7)
 
-NRM.3 <- multicon::composite(NRM.3r,
+NRM.3 <- multicon::composite(NRM.3raw,
   rel = TRUE, 
   nomiss = 0.6)
 
-NRM.3df <- as.data.frame(NRM.3r)
+NRM.3df <- as.data.frame(NRM.3raw)
 
 RM_S3 <- dplyr::coalesce(BRM.3, NRM.3)
 
@@ -982,16 +1056,16 @@ summary(fit)
 Demographics
 
 ```{r Demographics}
-# N = 735
+# N = 648
 
 # Gender Women = 48.2
 table(Study3rawdataset$Gender)
 
 # Age = 22.41
-Study3rawdataset[Study3rawdataset$IPAddress == "174.240.10.13", "Age"] <- as.integer(39)
-Study3rawdataset[Study3rawdataset$IPAddress == "162.232.177.134", "Age"] <- as.integer(28)
-
-sd(as.numeric(Study3rawdataset$Age), na.rm = TRUE)
+Study3rawdataset$Age[Study3rawdataset$Age == "28`"] <- 28
+Study3rawdataset$Age[Study3rawdataset$Age == "39*"] <- 39
+Age <- as.numeric(Study3rawdataset$Age)
+mean(Age, na.rm = TRUE)
 
 # FGC Status = 88.2%
 Edu3 <- Study3rawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
@@ -1001,16 +1075,38 @@ Edu3 <- Study3rawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
 
 ```{r Study 4 - Load in Data}
 
-# imac
-# Study4rawdataset <- read.csv("/Users/jujlopez/Documents/Redface/RFBF/RFBF.repo/Data/Study4.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+Study4rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study4_Randomized.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
-#laptop
-Study4rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study4.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+Study4rawdataset<- Study4rawdataset[-1, ]  # Getting rid of unneccesary rows
 
-Study4rawdataset<- Study4rawdataset[-c(1:6), ]  # Getting rid of unneccesary rows
+Study4rawdataset <- Study4rawdataset %>% retype()
 
-Study4rawdataset <- Study4rawdataset  %>% filter(Race == 3) %>% retype()
+data <- Study4rawdataset
 
+# Prepping by setting NA to 0 for Race variables 
+data$Race_1[is.na(data$Race_1)] <- 0
+data$Race_2[is.na(data$Race_2)] <- 0
+data$Race_3[is.na(data$Race_3)] <- 0
+data$Race_4[is.na(data$Race_4)] <- 0
+data$Race_5[is.na(data$Race_5)] <- 0
+data$Race_6[is.na(data$Race_6)] <- 0
+data$Race_7[is.na(data$Race_7)] <- 0
+
+# Creating Race variable 
+data <- data %>% mutate(Race = case_when(
+                    Race_1 == 1 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "1",
+                    Race_1 == 0 & Race_2 == 1 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "2",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 1 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "3",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 1 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "4",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 1 & Race_6 == 0 & Race_7 == 0 ~ "5",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 1 & Race_7 == 0 ~ "6",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 1 ~ "7"))
+
+# Filter by Race
+Study4rawdataset <- data %>% filter(Race == 3) 
+
+# Filter out the not finished surveys 
+Study4rawdataset <- Study4rawdataset %>% filter(V10 == 1)
 
 ```
 
@@ -1198,15 +1294,20 @@ summary(fit)
 Demographics
 
 ```{r Demographics}
-# N = 170
+# N = 774
 
 # Gender Women = 57.6
-table(Study3rawdataset$Gender)
+table(Study4rawdataset$Gender)
 
 # Age = 22.41
-table(Study3rawdataset$Age)
+Study4rawdataset$Age[Study4rawdataset$Age == 445] <- 45
+Study4rawdataset$Age[Study4rawdataset$Age == 1959] <- 60
+Study4rawdataset$Age[Study4rawdataset$Age == 1995] <- 24
+Age <- as.numeric(Study4rawdataset$Age)
+mean(Age, na.rm = TRUE)
+
 
 # FGC Status = 88.2%
-Edu3 <- Study3rawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
+Edu4 <- Study4rawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
 
 ```

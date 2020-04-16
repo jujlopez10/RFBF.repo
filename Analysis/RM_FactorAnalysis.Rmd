@@ -1,0 +1,332 @@
+---
+title: "RM_factoranalysis"
+author: "Julisa"
+date: "4/16/2020"
+output: html_document
+---
+
+
+```{r Loading packages}
+
+library(here) #collaboration
+library(rio) #import data
+library(tidyverse) #Tidy data
+library(janitor) #clean-up variables
+library(psych) #recoding variables
+require(lavaan) #mediation model
+library(dplyr) # for selecting variables
+library(shiny) # to load in power analysis
+library(hablar)
+library(parallel)
+library(GPArotation)
+
+```
+
+Prepping Data 
+```{r Study 2 - Load in Data}
+
+Study2rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
+Study2rawdataset<- Study2rawdataset[-1, ]  # Getting rid of unneccesary rows
+
+Study2rawdataset <- Study2rawdataset %>% retype()
+
+Study2rawdataset <- mutate(Study2rawdataset, Condition_S2 = ifelse(is.na(Study2rawdataset$BFPaint1), 1, 0)) # creating condition variable
+
+data <- Study2rawdataset
+
+# Prepping by setting NA to 0 for Race variables 
+data$Race_1[is.na(data$Race_1)] <- 0
+data$Race_2[is.na(data$Race_2)] <- 0
+data$Race_3[is.na(data$Race_3)] <- 0
+data$Race_4[is.na(data$Race_4)] <- 0
+data$Race_5[is.na(data$Race_5)] <- 0
+data$Race_6[is.na(data$Race_6)] <- 0
+data$Race_7[is.na(data$Race_7)] <- 0
+
+# Creating Race variable 
+data <- data %>% mutate(Race = case_when(
+                    Race_1 == 1 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "1",
+                    Race_1 == 0 & Race_2 == 1 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "2",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 1 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "3",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 1 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "4",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 1 & Race_6 == 0 & Race_7 == 0 ~ "5",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 1 & Race_7 == 0 ~ "6",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 1 ~ "7"))
+
+# Filter by Race
+Study2rawdataset <- data %>% filter(Race == 3) 
+
+# Filter out the not finished surveys 
+Study2rawdataset <- Study2rawdataset %>% filter(V10 == 1)
+
+```
+
+
+```{r Blk RacismMini}
+BRM.2raw <- Study2rawdataset %>% dplyr::select(
+RacismMini_1, RacismMini_2, RacismMini_3, RacismMini_4, RacismMini_5, RacismMini_6, RacismMini_7, RacismMini_8, RacismMini_9, RacismMini_10)
+
+RM.key = c(1, -1, 1, -1, -1, -1, -1, 1, 1, 1)
+
+BRM.2r <- reverse.code(RM.key, 
+                       BRM.2raw, 
+                       mini = 1, 
+                       max = 7)
+
+BlkRM_S2 <-
+  multicon::composite(BRM.2r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+BRM.2df <- as.data.frame(BRM.2r)
+
+```
+
+Blk RM Factor loadings
+```{r Blk RM Factor loadings}
+corMat <- cor(BRM.2df, use = "pairwise.complete.obs")
+solutionX <- fa(r = corMat, nfactors = 2, rotate = "varimax", fm = "pa")
+solutionX
+```
+
+```{r Ntv Race Mini}
+NRM.2raw <- Study2rawdataset %>% dplyr::select(
+  RacismMini_1.1, RacismMini_2.1, RacismMini_3.1,
+  RacismMini_4.1, RacismMini_5.1, RacismMini_6.1,
+  RacismMini_7.1, RacismMini_8.1, RacismMini_9.1,
+  RacismMini_10.1)
+
+NRM.2r <- reverse.code(RM.key, 
+                       NRM.2raw, 
+                       mini = 1, 
+                       max = 7)
+
+NtvRM_S2 <-
+  multicon::composite(NRM.2raw,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+NRM.2df <- as.data.frame(NRM.2r)
+```
+
+Ntv RM Factor loadings
+```{r Ntv RM Factor loadings}
+corMat <- cor(NRM.2df, use = "pairwise.complete.obs")
+solutionX <- fa(r = corMat, nfactors = 2, rotate = "varimax", fm = "pa")
+solutionX
+```
+
+```{r}
+RM_S2 <- dplyr::coalesce(BRM.2df, NRM.2df)
+
+corMat <- cor(RM_S2, use = "pairwise.complete.obs")
+solutionX <- fa(r = corMat, nfactors = 2, rotate = "varimax", fm = "pa")
+solutionX
+```
+
+
+```{r Study 3 - Load in Data}
+
+Study3rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study3_Randomized.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
+Study3rawdataset<- Study3rawdataset[-1, ]  # Getting rid of unneccesary rows
+
+Study3rawdataset <- Study3rawdataset %>% retype()
+
+data <- Study3rawdataset
+
+# Prepping by setting NA to 0 for Race variables 
+data$Race_1[is.na(data$Race_1)] <- 0
+data$Race_2[is.na(data$Race_2)] <- 0
+data$Race_3[is.na(data$Race_3)] <- 0
+data$Race_4[is.na(data$Race_4)] <- 0
+data$Race_5[is.na(data$Race_5)] <- 0
+data$Race_6[is.na(data$Race_6)] <- 0
+data$Race_7[is.na(data$Race_7)] <- 0
+
+# Creating Race variable 
+data <- data %>% mutate(Race = case_when(
+                    Race_1 == 1 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "1",
+                    Race_1 == 0 & Race_2 == 1 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "2",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 1 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "3",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 1 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "4",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 1 & Race_6 == 0 & Race_7 == 0 ~ "5",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 1 & Race_7 == 0 ~ "6",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 1 ~ "7"))
+
+# Filter by Race
+Study3rawdataset <- data %>% filter(Race == 3) 
+
+# Filter out the not finished surveys 
+Study3rawdataset <- Study3rawdataset %>% filter(V10 == 1)
+
+Study3rawdataset <- mutate(Study3rawdataset, Condition_S3 = ifelse(is.na(Study3rawdataset$B1_1), 1, 0)) # creating condition variable
+
+```
+
+
+```{r Blk RacismMini}
+BRM.3raw <- Study3rawdataset %>% dplyr::select(
+  BlkRacismMini_1, BlkRacismMini_2, BlkRacismMini_3,
+  BlkRacismMini_4, BlkRacismMini_5, BlkRacismMini_6,
+  BlkRacismMini_7, BlkRacismMini_8, 
+  BlkRacismMini_9, BlkRacismMini_10)
+
+RM.3key = c(1, -1, 1, -1, -1, -1, -1, 1, 1, 1)
+
+BRM.3r <- reverse.code(RM.3key,
+                      BRM.3raw,
+                      mini = 1,
+                      max = 7)
+
+BRM.3 <- multicon::composite(BRM.3r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+BRM.3df <- as.data.frame(BRM.3r)
+```
+
+```{r}
+corMat <- cor(BRM.3df, use = "pairwise.complete.obs")
+solutionX <- fa(r = corMat, nfactors = 2, rotate = "varimax", fm = "pa")
+solutionX
+```
+
+```{r Ntv Racism Mini}
+NRM.3raw <- Study3rawdataset %>% dplyr::select(
+  NtvRacismMini_1, NtvRacismMini_2, NtvRacismMini_3,
+  BtvRacismMini_4, NtvRacismMini_5, NtvRacismMini_6,
+  NtvRacismMini_7, NtvRacismMini_8, NtvRacismMini_9,
+  NtvRacismMini_10)
+
+NRM.3r <- reverse.code(RM.3key,
+                      NRM.3raw,
+                      mini = 1,
+                      max = 7)
+
+NRM.3 <- multicon::composite(NRM.3r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+NRM.3df <- as.data.frame(NRM.3r)
+
+```
+
+```{r}
+corMat <- cor(NRM.3df, use = "pairwise.complete.obs")
+solutionX <- fa(r = corMat, nfactors = 2, rotate = "varimax", fm = "pa")
+solutionX
+```
+
+```{r Overall Racism Mini}
+RM_S3 <- dplyr::coalesce(BRM.3df, NRM.3df)
+
+corMat <- cor(RM_S3, use = "pairwise.complete.obs")
+solutionX <- fa(r = corMat, nfactors = 2, rotate = "varimax", fm = "pa")
+solutionX
+```
+
+```{r Study 4 - Load in Data}
+
+Study4rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study4_Randomized.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
+Study4rawdataset<- Study4rawdataset[-1, ]  # Getting rid of unneccesary rows
+
+Study4rawdataset <- Study4rawdataset %>% retype()
+
+data <- Study4rawdataset
+
+# Prepping by setting NA to 0 for Race variables 
+data$Race_1[is.na(data$Race_1)] <- 0
+data$Race_2[is.na(data$Race_2)] <- 0
+data$Race_3[is.na(data$Race_3)] <- 0
+data$Race_4[is.na(data$Race_4)] <- 0
+data$Race_5[is.na(data$Race_5)] <- 0
+data$Race_6[is.na(data$Race_6)] <- 0
+data$Race_7[is.na(data$Race_7)] <- 0
+
+# Creating Race variable 
+data <- data %>% mutate(Race = case_when(
+                    Race_1 == 1 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "1",
+                    Race_1 == 0 & Race_2 == 1 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "2",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 1 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "3",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 1 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "4",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 1 & Race_6 == 0 & Race_7 == 0 ~ "5",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 1 & Race_7 == 0 ~ "6",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 1 ~ "7"))
+
+# Filter by Race
+Study4rawdataset <- data %>% filter(Race == 3) 
+
+# Filter out the not finished surveys 
+Study4rawdataset <- Study4rawdataset %>% filter(V10 == 1)
+
+Study4rawdataset<- Study4rawdataset[-c(1:6), ]
+
+```
+
+```{r RacismMini}
+BRM.4raw <- Study4rawdataset %>% dplyr::select(
+  BlkRacismMini_1, BlkRacismMini_2, BlkRacismMini_3,
+  BlkRacismMini_4, BlkRacismMini_5, BlkRacismMini_6,
+  BlkRacismMini_7, BlkRacismMini_8, BlkRacismMini_9,
+  BlkRacismMini_10)
+
+RM.4key = c(1, -1, 1, -1, -1, -1, -1, 1, 1, 1)
+
+BRM.4r <- reverse.code(RM.4key,
+                      BRM.4raw,
+                      mini = 1,
+                      max = 7)
+
+BRM_S4 <- multicon::composite(BRM.4r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+BRM.4df <- as.data.frame(BRM.4r)
+
+```
+
+```{r}
+corMat <- cor(BRM.4df, use = "pairwise.complete.obs")
+blkRM <- fa(r = corMat, nfactors = 2, rotate = "varimax", fm = "pa")
+blkRM
+```
+
+
+```{r}
+NRM.4raw <- Study4rawdataset %>% dplyr::select(
+  NtvRacismMini_1, NtvRacismMini_2, NtvRacismMini_3,
+  NtvRacismMini_4, NtvRacismMini_5, NtvRacismMini_6,
+  NtvRacismMini_7, NtvRacismMini_8, NtvRacismMini_9,
+  NtvRacismMini_10)
+
+NRM.4r <- reverse.code(RM.4key,
+                      NRM.4raw,
+                      mini = 1,
+                      max = 7)
+
+NRM_S4 <- multicon::composite(NRM.4r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+NRM.4df <- as.data.frame(NRM.4r)
+
+```
+
+```{r}
+corMat <- cor(NRM.4df, use = "pairwise.complete.obs")
+NtvRM <- fa(r = corMat, nfactors = 2, rotate = "varimax", fm = "pa")
+NtvRM
+```
+
+
+```{r Overall Racism Mini}
+RM_S4 <- dplyr::coalesce(NRM.4df, BRM.4df) 
+# NOT WORKING - could be because of within subjects
+
+corMat <- cor(RM_S4, use = "pairwise.complete.obs")
+solution <- fa(r = corMat, nfactors = 2, rotate = "varimax", fm = "pa")
+solution
+```

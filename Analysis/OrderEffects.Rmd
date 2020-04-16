@@ -467,9 +467,9 @@ t.test(BFfirst_RF, RFfirst_RF, paired = FALSE)
 ```{r Study 4}
 Study4rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study4_Randomized.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
-Study4rawdataset<- Study4rawdataset[-c(1:6), ]  # Getting rid of unneccesary rows
+Study4rawdataset<- Study4rawdataset[-1, ]  # Getting rid of unneccesary rows
 
-data <- Study4rawdataset  %>%  retype()
+data <- Study4rawdataset %>%  retype()
 
 # Prepping by setting NA to 0 for Race variables 
 data$Race_1[is.na(data$Race_1)] <- 0
@@ -482,16 +482,16 @@ data$Race_7[is.na(data$Race_7)] <- 0
 
 # Creating Race variable 
 data <- data %>% mutate(Race = case_when(
-                        Race_1 == 1 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "1",
-                        Race_1 == 0 & Race_2 == 1 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "2",
-                        Race_1 == 0 & Race_2 == 0 & Race_3 == 1 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "3",
-                        Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 1 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "4",
-                        Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 1 & Race_6 == 0 & Race_7 == 0 ~ "5",
-                        Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 1 & Race_7 == 0 ~ "6",
-                        Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 1 ~ "7"))
+                    Race_1 == 1 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "1",
+                    Race_1 == 0 & Race_2 == 1 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "2",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 1 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "3",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 1 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "4",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 1 & Race_6 == 0 & Race_7 == 0 ~ "5",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 1 & Race_7 == 0 ~ "6",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 1 ~ "7"))
 
 # Filtering by race 
-Study4rawdataset <- data %>% filter(Race == 3)
+Study4rawdataset <- data %>% filter(Race == 3) %>% filter(V10 == 1)
 
 ```
 
@@ -499,6 +499,12 @@ Study4rawdataset <- data %>% filter(Race == 3)
 Study4rawdataset <- mutate(Study4rawdataset, RFfirst = ifelse(DO.BR.FL_285 == "FL_304", 1, 0))
 Study4rawdataset <- mutate(Study4rawdataset, BFfirst = ifelse(DO.BR.FL_285 == "FL_288", 1, 0))
 Study4rawdataset <- mutate(Study4rawdataset, Random = ifelse(DO.BR.FL_285 == "FL_418", 1, 0))
+Study4rawdataset <- mutate(Study4rawdataset, Condition = case_when(
+  RFfirst == 1 & BFfirst == 0 & Random == 0 ~ "RedFirst",
+  RFfirst == 0 & BFfirst == 1 & Random == 0 ~ "BlackFirst",
+  RFfirst == 0 & BFfirst == 0 & Random == 1 ~ "Random",
+))
+
 ```
 
 
@@ -637,3 +643,111 @@ t.test(BFF_BFOK, BFF_RFOK, paired = TRUE)
 t.test(RFF_BFOK, RFF_RFOK, paired = TRUE)
 t.test(Random_BFOK, Random_RFOK, paired = TRUE)
 ```
+
+
+```{r BF OK}
+BFS4.raw <- Study4rawdataset %>% dplyr::select(
+  B1_1, B1_2, B1_3, B1_4,
+  B2_1, B2_2, B2_3, B2_4,
+  B3_1, B3_2, B3_3, B3_4)
+
+BF.4Key = c(1, -1, 1, -1, 
+           1, -1, 1, -1,
+           1, -1, 1, -1) #Reverse Scoring Items
+
+BFS4.r <-
+  reverse.code(BF.4Key,
+               BFS4.raw,
+               mini = 1,
+               maxi = 7)
+
+Study4rawdataset <- mutate(Study4rawdataset, BFOK =
+  multicon::composite(BFS4.r,
+  rel = TRUE, 
+  nomiss = 0.6))
+
+
+```
+
+```{r RF OK}
+RFS4.raw <- Study4rawdataset %>% dplyr::select(
+  R1_1, R1_2, R1_3, R1_4, 
+  R2_1, R2_2, R2_3, R2_4,
+  R3_1, R3_2, R3_3, R3_4)
+
+RFS4.r <-
+  reverse.code(BF.4Key,
+               RFS4.raw,
+               mini = 1,
+               maxi = 7)
+
+Study4rawdataset <- mutate(Study4rawdataset, RFOK = multicon::composite(RFS4.r,
+  rel = TRUE, 
+  nomiss = 0.6))
+
+
+Study4rawdataset <- mutate(Study4rawdataset, OK = dplyr::coalesce(BFOK, RFOK))
+
+```
+
+```{r}
+Study4rawdataset <- mutate(Study4rawdataset, id = rownames(Study4rawdataset))
+
+data <- Study4rawdataset %>% select(RFOK, BFOK, OK, Condition, id)
+
+data <- data %>%
+  gather(key = "target", value = "acceptability_score", RFOK, BFOK) %>% convert_as_factor(id, target)
+
+graph <- ggboxplot(
+  data, x = "target", y = "acceptability_score", color = "Condition", palette = "jco"
+)
+
+graph
+```
+
+```{r}
+# Mixed Anova 
+
+anova <- anova_test(data, dv = "acceptability_score", wid = id, between = Condition, within = "target")
+
+?anova_test()
+
+get_anova_table(anova)
+```
+
+```{r}
+# Effect of condition at each target
+
+one.way <- data %>% 
+  group_by(target) %>%
+  anova_test(dv = acceptability_score, wid = id, between = Condition) %>%
+  get_anova_table() %>%
+  adjust_pvalue(method = "bonferroni")
+
+one.way
+
+# effect of the between-subject factor Condition (Blackfirst, Redfirst, RandomOrder) on Acceptability score at each Target (BFOK, RFOK).
+
+```
+
+```{r}
+# Pairwise comparisons between group levels
+pwc <- data %>%
+  group_by(target) %>%
+  pairwise_t_test(acceptability_score ~ Condition, p.adjust.method = "bonferroni")
+pwc
+```
+
+```{r}
+
+# Visualization: boxplots with p-values
+pwc <- pwc %>% add_xy_position(x = "target")
+graph + 
+  stat_pvalue_manual(pwc, tip.length = 0, hide.ns = TRUE) +
+  labs(
+    subtitle = get_test_label(anova, detailed = TRUE),
+    caption = get_pwc_label(pwc)
+  )
+
+```
+
