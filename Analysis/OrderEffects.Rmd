@@ -29,27 +29,48 @@ library(ggplot2)
 library(ggpubr)
 library(rstatix)
 
+options(scipen=999)
+
 ```
 
 Study 1A - T-Test between Redface and Blackface (Between Subjects)
 
 ```{r Study 1A - Load in Data}
 
+# Load in dataset
 Study1Arawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study1A_Randomized.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
-Study1Arawdataset<- Study1Arawdataset[-c(1:9), ]  # deleting unnecessary rows
+# Delete extra row that qualtrics downloads
+Study1Arawdataset<- Study1Arawdataset[-1, ]  
 
-Study1Arawdataset <- Study1Arawdataset %>% retype()
+# Retyping data so replace empty cells with NAs
+data <- Study1Arawdataset %>% retype()
+
+# Filter by Finished survey & deleting first three rows, these were previews 
+Study1Arawdataset <- data %>% filter(V10 == 1)
+
+Study1Arawdataset <- Study1Arawdataset[-c(1:3), ]
 
 ```
 
 Creating Conditions
 
-```{r}
+```{r Creating Conditions}
+
 Study1Arawdataset <- mutate(Study1Arawdataset, RFfirst_1 = ifelse(DO.BR.FL_37 == "FL_108|FL_92", 1, 0))
+
 Study1Arawdataset <- mutate(Study1Arawdataset, BFfirst_1 = ifelse(DO.BR.FL_37 == "FL_92|FL_108", 1, 0))
+
 Study1Arawdataset <- mutate(Study1Arawdataset, RFfirst_2 = ifelse(DO.BR.FL_44 == "FL_140|FL_124", 1, 0))
+
 Study1Arawdataset <- mutate(Study1Arawdataset, BFfirst_2 = ifelse(DO.BR.FL_44 == "FL_124|FL_140", 1, 0))
+
+Study1Arawdataset <- mutate(Study1Arawdataset, Condition = case_when(RFfirst_1 == 1 | RFfirst_2 == 1 ~ "RFfirst", BFfirst_1 == 1 | BFfirst_2 == 1 ~ "BFfirst"))
+
+Study1Arawdataset <- mutate(Study1Arawdataset, Condition_lm = case_when(RFfirst_1 == 1 | RFfirst_2 == 1 ~ "1", BFfirst_1 == 1 | BFfirst_2 == 1 ~ "0"))
+
+Study1Arawdataset <- mutate(Study1Arawdataset, id = rownames(Study1Arawdataset))
+
 ```
 
 
@@ -257,24 +278,215 @@ t.test(BFfirst_BF, RFfirst_BF, paired = FALSE)
 t.test(BFfirst_RF, RFfirst_RF, paired = FALSE)
 ```
 
+
+```{r BF OK}
+
+BF1a <- Study1Arawdataset %>% dplyr::select(
+  Q112_1, Q112_2, Q112_3, Q112_4,
+  Q113_1, Q113_2, Q113_3, Q113_4,
+  Q116_1, Q116_2, Q116_3, Q116_4,
+  Q136_1, Q136_2, Q136_3, Q136_4,
+  Q163_1, Q163_2, Q163_3, Q163_4)
+
+BF.All.Key = c(
+  1, -1, 1, -1, 
+  1, -1, 1, -1,
+  1, -1, 1, -1,
+  1, -1, 1, -1,
+  1, -1, 1, -1)
+
+BF1a.r <-
+  reverse.code(BF.All.Key,
+               BF1a,
+               mini = 1,
+               maxi = 7)
+
+BF1a.df <- as.data.frame(BF1a.r)
+
+BFman_1 <- dplyr::coalesce(BF1a.df$Q112_1, BF1a.df$Q163_1)
+BFman_2 <- dplyr::coalesce(BF1a.df$`Q112_2-`, BF1a.df$`Q163_2-`)
+BFman_3 <- dplyr::coalesce(BF1a.df$Q112_3, BF1a.df$Q163_3)
+BFman_4 <- dplyr::coalesce(BF1a.df$`Q112_4-`, BF1a.df$`Q163_4-`)
+
+BFwom_1 <- BF1a.df$Q113_1
+BFwom_2 <- BF1a.df$`Q113_2-`
+BFwom_3 <- BF1a.df$Q113_3
+BFwom_4 <- BF1a.df$`Q113_4-`
+
+BFgroup_1 <- dplyr::coalesce(BF1a.df$Q116_1, BF1a.df$Q136_1)
+BFgroup_2 <- dplyr::coalesce(BF1a.df$`Q116_2-`, BF1a.df$`Q136_2-`)
+BFgroup_3 <- dplyr::coalesce(BF1a.df$Q116_3, BF1a.df$Q136_3)
+BFgroup_4 <- dplyr::coalesce(BF1a.df$`Q116_4-`, BF1a.df$`Q136_4-`)
+
+BF1a.df <- data.frame(
+  BFman_1, BFman_2, BFman_3, BFman_4,
+  BFwom_1, BFwom_2, BFwom_3, BFwom_4,
+  BFgroup_1, BFgroup_2, BFgroup_3, BFgroup_4
+)
+
+Study1Arawdataset <- mutate(Study1Arawdataset, BFOK = multicon::composite(BF1a.df, rel = TRUE, nomiss = 0.6))
+
+```
+
+
+```{r RF OK}
+RF1a <- Study1Arawdataset %>% dplyr::select(
+  Q156_1, Q156_2, Q156_3, Q156_4,
+  Q123_1, Q123_2, Q123_3, Q123_4,
+  Q160_1, Q160_2, Q160_3, Q160_4,
+  Q143_1, Q143_2, Q143_3, Q143_4,
+  Q148_1, Q148_2, Q148_3, Q148_4)
+
+RF1a.r <-
+  reverse.code(BF.All.Key,
+               RF1a,
+               mini = 1,
+               maxi = 7)
+
+RF1a.df <- as.data.frame(RF1a.r)
+
+RFman_1 <- dplyr::coalesce(RF1a.df$Q148_1, RF1a.df$Q123_1)
+RFman_2 <- dplyr::coalesce(RF1a.df$`Q148_2-`, RF1a.df$`Q123_2-`)
+RFman_3 <- dplyr::coalesce(RF1a.df$Q148_3, RF1a.df$Q123_3)
+RFman_4 <- dplyr::coalesce(RF1a.df$`Q148_4-`, RF1a.df$`Q123_4-`)
+
+RFwom_1 <- RF1a.df$Q160_1
+RFwom_2 <- RF1a.df$`Q160_2-`
+RFwom_3 <- RF1a.df$Q160_3
+RFwom_4 <- RF1a.df$`Q160_4-`
+
+RFgroup_1 <- dplyr::coalesce(RF1a.df$Q143_1, RF1a.df$Q156_1)
+RFgroup_2 <- dplyr::coalesce(RF1a.df$`Q143_2-`, RF1a.df$`Q156_2-`)
+RFgroup_3 <- dplyr::coalesce(RF1a.df$Q143_3, RF1a.df$Q156_3)
+RFgroup_4 <- dplyr::coalesce(RF1a.df$`Q143_4-`, RF1a.df$`Q156_4-`)
+
+RF1a.df <- data.frame(
+  RFman_1, RFman_2, RFman_3, RFman_4,
+  RFwom_1, RFwom_2, RFwom_3, RFwom_4,
+  RFgroup_1, RFgroup_2, RFgroup_3, RFgroup_4
+)
+
+Study1Arawdataset <- mutate(Study1Arawdataset, RFOK = multicon::composite(RF1a.df, rel = TRUE, nomiss = 0.6))
+
+# RFPaintWom2_1 - Cleveland Indian Woman & BFPaintWom2_1 - Afro Woman
+```
+
+```{r Overall OK}
+Study1Arawdataset <- mutate(Study1Arawdataset, OK = dplyr::coalesce(BFOK, RFOK))
+```
+
+
+```{r Graph}
+
+data <- Study1Arawdataset %>% select(RFOK, BFOK, OK, Condition, id)
+
+data <- data %>%
+  gather(key = "target", value = "acceptability_score", RFOK, BFOK) %>% convert_as_factor(id, target)
+
+graph <- ggboxplot(
+  data, x = "target", y = "acceptability_score", color = "Condition", palette = "jco"
+)
+
+graph
+```
+
+```{r Mixed Anova}
+# Mixed Anova 
+
+anova <- anova_test(data, dv = "acceptability_score", wid = id, between = Condition, within = "target")
+
+get_anova_table(anova)
+```
+
+```{r Follow up - Non signifcant interaction}
+# Pairwise paired t-test for Target 
+
+data %>%
+  pairwise_t_test(
+    acceptability_score ~ target, paired = TRUE, 
+    p.adjust.method = "bonferroni"
+  )
+```
+
+```{r Follow up}
+# pairwise independent t-test for Condition 
+
+data %>%
+  pairwise_t_test(
+    acceptability_score ~ Condition, 
+    p.adjust.method = "bonferroni"
+  )
+```
+
+
+```{r Condition at Target}
+# Effect of condition at each target
+
+one.way <- data %>% 
+  group_by(target) %>%
+  anova_test(dv = acceptability_score, wid = id, between = Condition) %>%
+  get_anova_table() %>%
+  adjust_pvalue(method = "bonferroni")
+
+one.way
+
+# effect of the between-subject factor Condition (Blackfirst, Redfirst, RandomOrder) on Acceptability score at each Target (BFOK, RFOK).
+
+```
+
+```{r Pairwise Comparison}
+# Pairwise comparisons between Condition levels
+pwc <- data %>%
+  group_by(target) %>%
+  pairwise_t_test(acceptability_score ~ Condition, p.adjust.method = "bonferroni")
+pwc
+```
+
+```{r Graph}
+
+# Visualization: boxplots with p-values
+pwc <- pwc %>% add_xy_position(x = "target")
+graph + 
+  stat_pvalue_manual(pwc, tip.length = 0, hide.ns = TRUE) +
+  labs(
+    subtitle = get_test_label(anova, detailed = TRUE),
+    caption = get_pwc_label(pwc)
+  )
+
+```
+
+
+
+
 Study 1B - T-Test between Redface and Blackface (Between Subjects)
 
 ```{r Study 1B - Load in Data}
 
 Study1Brawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study1B_Randomized.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
 
-Study1Brawdataset<- Study1Brawdataset[-c(1:2), ]  
+Study1Brawdataset<- Study1Brawdataset[-1, ]  
 
-Study1Brawdataset <- Study1Brawdataset %>% retype()
+data <- Study1Brawdataset %>% retype()
+
+# Filter by Finished survey & deleting first three rows, these were previews 
+Study1Brawdataset <- data %>% filter(V10 == 1)
+
 ```
 
 Creating Conditions
 
 ```{r Creating Conditions}
 Study1Brawdataset <- mutate(Study1Brawdataset, RFfirst_1 = ifelse(DO.BR.FL_166 == "FL_216", 1, 0))
+
 Study1Brawdataset <- mutate(Study1Brawdataset, BFfirst_1 = ifelse(DO.BR.FL_166 == "FL_192", 1, 0))
+
 Study1Brawdataset <- mutate(Study1Brawdataset, RFfirst_2 = ifelse(DO.BR.FL_236 == "FL_256", 1, 0))
+
 Study1Brawdataset <- mutate(Study1Brawdataset, BFfirst_2 = ifelse(DO.BR.FL_236 == "FL_237", 1, 0))
+
+Study1Brawdataset <- mutate(Study1Brawdataset, Condition = case_when(RFfirst_1 == 1 | RFfirst_2 == 1 ~ "RFfirst", BFfirst_1 == 1 | BFfirst_2 == 1 ~ "BFfirst"))
+
+Study1Brawdataset <- mutate(Study1Brawdataset, id = rownames(Study1Brawdataset))
 ```
 
 
@@ -463,6 +675,163 @@ t.test(RFfirst_BF, RFfirst_RF, paired = TRUE)
 t.test(BFfirst_BF, RFfirst_BF, paired = FALSE)
 t.test(BFfirst_RF, RFfirst_RF, paired = FALSE)
 ```
+
+```{r BF OK}
+BF1b <- Study1Brawdataset %>% dplyr::select(
+  BFPaint1_1, BFPaint1_2, BFPaint1_3, BFPaint1_4,
+  BFPaintWom1_1, BFPaintWom1_2, BFPaintWom1_3, BFPaintWom1_4,
+  BFGroup1_1, BFGroup1_2, BFGroup1_3, BFGroup1_4,
+  BFPaintMan2_1, BFPaintMan2_2, BFPaintMan2_3, BFPaintMan2_4,
+  BFGroup2_1, BFGroup2_2, BFGroup2_3, BFGroup2_4)
+
+BF.All.Key = c(
+  1, -1, 1, -1, 
+  1, -1, 1, -1,
+  1, -1, 1, -1,
+  1, -1, 1, -1,
+  1, -1, 1, -1)
+
+BF1b.r <-
+  reverse.code(BF.All.Key,
+               BF1b,
+               mini = 1,
+               maxi = 7)
+
+BF1b.df <- as.data.frame(BF1b.r)
+
+BF1bman_1 <- dplyr::coalesce(BF1b.df$BFPaint1_1, BF1b.df$BFPaintMan2_1)
+BF1bman_2 <- dplyr::coalesce(BF1b.df$`BFPaint1_2-`, BF1b.df$`BFPaintMan2_2-`)
+BF1bman_3 <- dplyr::coalesce(BF1b.df$BFPaint1_3, BF1b.df$BFPaintMan2_3)
+BF1bman_4 <- dplyr::coalesce(BF1b.df$`BFPaint1_4-`, BF1b.df$`BFPaintMan2_4-`)
+
+BF1bwom_1 <- BF1b.df$BFPaintWom1_1
+BF1bwom_2 <- BF1b.df$`BFPaintWom1_2-`
+BF1bwom_3 <- BF1b.df$BFPaintWom1_3
+BF1bwom_4 <- BF1b.df$`BFPaintWom1_4-`
+
+BF1bgroup_1 <- dplyr::coalesce(BF1b.df$BFGroup1_1, BF1b.df$BFGroup2_1)
+BF1bgroup_2 <- dplyr::coalesce(BF1b.df$`BFGroup1_2-`, BF1b.df$`BFGroup2_2-`)
+BF1bgroup_3 <- dplyr::coalesce(BF1b.df$BFGroup1_3, BF1b.df$BFGroup2_3)
+BF1bgroup_4 <- dplyr::coalesce(BF1b.df$`BFGroup1_4-`, BF1b.df$`BFGroup2_4-`)
+
+BF1b.df <- data.frame(
+  BF1bman_1, BF1bman_2, BF1bman_3, BF1bman_4,
+  BF1bwom_1, BF1bwom_2, BF1bwom_3, BF1bwom_4,
+  BF1bgroup_1, BF1bgroup_2, BF1bgroup_3, BF1bgroup_4
+)
+
+Study1Brawdataset <- mutate(Study1Brawdataset, BFOK =
+  multicon::composite(BF1b.df,
+  rel = TRUE, 
+  nomiss = 0.6))
+```
+
+
+```{r RF OK}
+RF1b <- Study1Brawdataset %>% dplyr::select(
+  RFPaintGroup2_1, RFPaintGroup2_2, RFPaintGroup2_3, RFPaintGroup2_4,
+  RFPaintWom1_1, RFPaintWom1_2, RFPaintWom1_3, RFPaintWom1_4,
+  RFPaintGroup1_1, RFPaintGroup1_2, RFPaintGroup1_3, RFPaintGroup1_4,
+  RFPaintMan2_1, RFPaintMan2_2, RFPaintMan2_3, RFPaintMan2_4,
+  RFGroup2_1, RFGroup2_2, RFGroup2_3, RFGroup2_4)
+
+RF1b.r <-
+  reverse.code(BF.All.Key,
+               RF1b,
+               mini = 1,
+               maxi = 7)
+
+RF1b.df <- as.data.frame(RF1b.r)
+
+RF1bman_1 <- dplyr::coalesce(RF1b.df$RFPaintGroup2_1, RF1b.df$RFPaintMan2_1)
+RF1bman_2 <- dplyr::coalesce(RF1b.df$`RFPaintGroup2_2-`, RF1b.df$`RFPaintMan2_2-`)
+RF1bman_3 <- dplyr::coalesce(RF1b.df$RFPaintGroup2_3, RF1b.df$RFPaintMan2_3)
+RF1bman_4 <- dplyr::coalesce(RF1b.df$`RFPaintGroup2_4-`, RF1b.df$`RFPaintMan2_4-`)
+
+RF1bwom_1 <- RF1b.df$RFPaintWom1_1
+RF1bwom_2 <- RF1b.df$`RFPaintWom1_2-`
+RF1bwom_3 <- RF1b.df$RFPaintWom1_3
+RF1bwom_4 <- RF1b.df$`RFPaintWom1_4-`
+
+RF1bgroup_1 <- dplyr::coalesce(RF1b.df$RFPaintGroup1_1, RF1b.df$RFGroup2_1)
+RF1bgroup_2 <- dplyr::coalesce(RF1b.df$`RFPaintGroup1_2-`, RF1b.df$`RFGroup2_2-`)
+RF1bgroup_3 <- dplyr::coalesce(RF1b.df$RFPaintGroup1_3, RF1b.df$RFGroup2_3)
+RF1bgroup_4 <- dplyr::coalesce(RF1b.df$`RFPaintGroup1_4-`, RF1b.df$`RFGroup2_4-`)
+
+RF1b.df <- data.frame(
+  RF1bman_1, RF1bman_2, RF1bman_3, RF1bman_4,
+  RF1bwom_1, RF1bwom_2, RF1bwom_3, RF1bwom_4,
+  RF1bgroup_1, RF1bgroup_2, RF1bgroup_3, RF1bgroup_4
+)
+
+Study1Brawdataset <- mutate(Study1Brawdataset,RFOK =
+  multicon::composite(RF1b.df,
+  rel = TRUE, 
+  nomiss = 0.6))
+```
+```{r Overall OK}
+Study1Brawdataset <- mutate(Study1Brawdataset, OK = dplyr::coalesce(BFOK, RFOK))
+```
+
+
+```{r Graph}
+
+data <- Study1Brawdataset %>% select(RFOK, BFOK, OK, Condition, id)
+
+data <- data %>%
+  gather(key = "target", value = "acceptability_score", RFOK, BFOK) %>% convert_as_factor(id, target)
+
+graph <- ggboxplot(
+  data, x = "target", y = "acceptability_score", color = "Condition", palette = "jco"
+)
+
+graph
+```
+
+```{r Mixed Anova}
+# Mixed Anova 
+
+anova <- anova_test(data, dv = "acceptability_score", wid = id, between = Condition, within = "target")
+
+get_anova_table(anova)
+```
+
+```{r Condition at Target}
+# Effect of condition at each target
+
+one.way <- data %>% 
+  group_by(target) %>%
+  anova_test(dv = acceptability_score, wid = id, between = Condition) %>%
+  get_anova_table() %>%
+  adjust_pvalue(method = "bonferroni")
+
+one.way
+
+# effect of the between-subject factor Condition (Blackfirst, Redfirst, RandomOrder) on Acceptability score at each Target (BFOK, RFOK).
+
+```
+
+```{r Pairwise Comparison}
+# Pairwise comparisons between Condition levels
+pwc <- data %>%
+  group_by(target) %>%
+  pairwise_t_test(acceptability_score ~ Condition, p.adjust.method = "bonferroni")
+pwc
+```
+
+```{r Graph}
+
+# Visualization: boxplots with p-values
+pwc <- pwc %>% add_xy_position(x = "target")
+graph + 
+  stat_pvalue_manual(pwc, tip.length = 0, hide.ns = TRUE) +
+  labs(
+    subtitle = get_test_label(anova, detailed = TRUE),
+    caption = get_pwc_label(pwc)
+  )
+
+```
+
 
 ```{r Study 4}
 Study4rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study4_Randomized.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
@@ -690,7 +1059,7 @@ Study4rawdataset <- mutate(Study4rawdataset, OK = dplyr::coalesce(BFOK, RFOK))
 
 ```
 
-```{r}
+```{r Graph}
 Study4rawdataset <- mutate(Study4rawdataset, id = rownames(Study4rawdataset))
 
 data <- Study4rawdataset %>% select(RFOK, BFOK, OK, Condition, id)
@@ -705,7 +1074,7 @@ graph <- ggboxplot(
 graph
 ```
 
-```{r}
+```{r Mixed Anova}
 # Mixed Anova 
 
 anova <- anova_test(data, dv = "acceptability_score", wid = id, between = Condition, within = "target")
@@ -715,7 +1084,7 @@ anova <- anova_test(data, dv = "acceptability_score", wid = id, between = Condit
 get_anova_table(anova)
 ```
 
-```{r}
+```{r Condtion at Target}
 # Effect of condition at each target
 
 one.way <- data %>% 
@@ -730,15 +1099,15 @@ one.way
 
 ```
 
-```{r}
-# Pairwise comparisons between group levels
+```{r Pairwise}
+# Pairwise comparisons between Condition levels
 pwc <- data %>%
   group_by(target) %>%
   pairwise_t_test(acceptability_score ~ Condition, p.adjust.method = "bonferroni")
 pwc
 ```
 
-```{r}
+```{r Graph}
 
 # Visualization: boxplots with p-values
 pwc <- pwc %>% add_xy_position(x = "target")
