@@ -1,5 +1,5 @@
 ---
-title: "RF Analysis"
+title: "RF_Analysis_FullRM"
 author: "Julisa Lopez"
 date: "1/10/2020"
 output: html_document
@@ -8,7 +8,6 @@ editor_options:
 ---
 
 ```{r Packages} 
-library(ggplot2)
 library(tidyverse)
 library(abind)
 library(foreach)
@@ -25,9 +24,6 @@ library(dplyr)
 library(here)
 library(rio)
 library(JSmediation)
-# install.packages("remotes")
-# library(remotes)
-# remotes::install_github("doomlab/MeMoBootR")
 
 # install.packages("lavaan")
 # install.packages("tidyr")
@@ -942,6 +938,8 @@ BFS3.OK <-
   rel = TRUE, 
   nomiss = 0.6)
 
+
+
 ```
 
 ```{r RF OK}
@@ -997,10 +995,10 @@ BFS3.full <-
 
 BFS3.df <- as.data.frame(BFS3.full)
 
-Study3rawdataset <- mutate(Study3rawdataset, BFOK_S3 =
+BFOK_S3 <-
   multicon::composite(BFS3.full,
   rel = TRUE, 
-  nomiss = 0.6))
+  nomiss = 0.6)
 
 RFS3.fullraw <- Study3rawdataset %>% dplyr::select(
   R1_1, R1_2, R1_3, R1_4, 
@@ -1018,33 +1016,62 @@ RFS3.full <-
 
 RFS3.df <- as.data.frame(RFS3.full)
 
-Study3rawdataset <- mutate(Study3rawdataset, RFOK_S3 = 
+RFOK_S3 <- 
   multicon::composite(RFS3.full,
                       rel = TRUE,
-                      nomiss = 0.6))
+                      nomiss = 0.6)
 
-Study3rawdataset <- mutate(Study3rawdataset, OK_S3 = dplyr::coalesce(BFOK_S3, RFOK_S3))
+OK_S3 <- dplyr::coalesce(BFOK_S3, RFOK_S3)
 
 ```
 
 Differences in Racism Minimization Predicting Difference in Acceptability
 
-```{r Black RacismMini}
+```{r RacismMini}
+# Full Black Racism Mini
+BRM.3raw <- Study3rawdataset %>% dplyr::select(
+  BlkRacismMini_1, BlkRacismMini_2, BlkRacismMini_3,
+  BlkRacismMini_4, BlkRacismMini_5, BlkRacismMini_6, 
+  BlkRacismMini_7, BlkRacismMini_8, BlkRacismMini_9,
+  BlkRacismMini_10)
+
+RM.3key = c(1, -1, 1, -1, -1, -1, -1, 1, 1, 1)
+
+BRM.3r <- reverse.code(RM.3key, BRM.3raw, mini = 1, max = 7)
+
+BRM.3Full <- multicon::composite(BRM.3r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+BRM.3dfFull <- as.data.frame(BRM.3r)
 
 # 3 item Black Racism Mini
 
 BRM.3rawThree <- Study3rawdataset %>% dplyr::select(
   BlkRacismMini_8, BlkRacismMini_9, BlkRacismMini_10)
 
-Study3rawdataset <- mutate(Study3rawdataset, BRM.3Three = multicon::composite(BRM.3rawThree,
+BRM.3Three <- multicon::composite(BRM.3rawThree,
   rel = TRUE, 
-  nomiss = 0.6))
+  nomiss = 0.6)
 
 BRM.3dfThree <- as.data.frame(BRM.3rawThree)
 
-```
+# Full Native Racism Mini
+NRM.3raw <- Study3rawdataset %>% dplyr::select(
+  NtvRacismMini_1, NtvRacismMini_2, NtvRacismMini_3, 
+  BtvRacismMini_4, NtvRacismMini_5, NtvRacismMini_6, 
+  NtvRacismMini_7, NtvRacismMini_8, NtvRacismMini_9, 
+  NtvRacismMini_10)
 
-```{r Native RacismMini}
+NRM.3r <- reverse.code(RM.3key, NRM.3raw, mini = 1, max = 7)
+
+NRM.3Full <- multicon::composite(NRM.3raw,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+NRM.3dfFull <- as.data.frame(NRM.3raw)
+
+
 
 # 3 item Native Racism Mini
 
@@ -1056,20 +1083,13 @@ NRM.3Three <- multicon::composite(NRM.3rawThree,
   nomiss = 0.6)
 
 NRM.3dfThree <- as.data.frame(NRM.3rawThree)
-```
 
-```{r Full RacismMini}
+RM_S3Full <- dplyr::coalesce(BRM.3Full, NRM.3Full)
+RM_S3Three <- dplyr::coalesce(BRM.3Three, NRM.3Three)
 
-Study3rawdataset <- mutate(Study3rawdataset, RM_S3Three = dplyr::coalesce(BRM.3Three, NRM.3Three))
-
-```
-
-```{r RacismMini T-test}
-
-t.test(NRM.3Three, BRM.3Three, paired = FALSE, var.equal = TRUE)
+t.test(NRM.3Full, BRM.3Full, paired = FALSE, var.equal = TRUE)
 
 ```
-
 
 ```{r Invisibility}
 BIN.3raw <- Study3rawdataset %>% dplyr::select(
@@ -1086,13 +1106,9 @@ BIN.3r <- reverse.code(IN.3key,
 
 BIN.3df <- as.data.frame(BIN.3r)
 
-Study3rawdataset <- mutate(Study3rawdataset, BIN_S3 = multicon::composite(BIN.3r,
+BIN_S3 <- multicon::composite(BIN.3r,
   rel = TRUE, 
-  nomiss = 0.6))
-
-```
-
-```{r Native Invisibility}
+  nomiss = 0.6)
 
 NIN.3raw <- Study3rawdataset %>% dplyr::select(
   NtvContemporaryInvis_1, NtvContemporaryInvis_2, NtvContemporaryInvis_3,
@@ -1105,82 +1121,62 @@ NIN.3r <- reverse.code(IN.3key,
 
 NIN.3df <- as.data.frame(NIN.3r)
 
-Study3rawdataset <- mutate(Study3rawdataset, NIN_S3 = multicon::composite(NIN.3r,
+NIN_S3 <- multicon::composite(NIN.3r,
   rel = TRUE, 
-  nomiss = 0.6))
+  nomiss = 0.6)
 
-```
-
-```{r Overall Invisibility}
-
-Study3rawdataset <- mutate(Study3rawdataset, IN_S3 = dplyr::coalesce(BIN_S3, NIN_S3))
-
-```
-
-```{r Invisibility Ttest}
-
-t.test(NIN_S3, BIN_S3, paired = FALSE, var.equal = TRUE)
+IN_S3 <- dplyr::coalesce(BIN_S3, NIN_S3)
 
 ```
 
 
-```{r Option A - Serial Mediation Model}
-Condition <- Study3rawdataset$Condition_S3
-IN <- Study3rawdataset$IN_S3
-RM <- Study3rawdataset$RM_S3Three
-OK <- Study3rawdataset$OK_S3
-Data <- data.frame(Condition, OK, IN, RM)
+```{r}
+vars <- data.frame(IN_S3, RM_S3Full, RM_S3Three, OK_S3, Study3rawdataset$Condition_S3)
 
-multipleMediation <-
-"
-  #Regressions
-  IN ~ a1 * Condition
-  RM ~ m * IN + a2 * Condition
-  OK ~ b2 * RM + b1 * IN + c * Condition
-  
-  #Defined Parameters:
-  ie1 := a1 * b1
-  ie2 := a2 * b2
-  ie3 := a1 * m * b2
-  de := c
-"
-
-fit <- sem(model = multipleMediation, data = vars)
-summary(fit)
+write.csv(vars, "Study3_SPSS.csv")
 ```
 
 
-```{r Option B Serial Mediation Model}
-library(MeMoBootR)
+```{r Serial Mediation with Full race mini}
+X <- Study3rawdataset$Condition_S3
+M1 <- IN_S3
+M2 <- RM_S3Full
+Y <- OK_S3
+Data <- data.frame(X=Study3rawdataset$Condition_S3, Y=OK_S3, M1=IN_S3, M2=RM_S3Full)
 
-OK <- data$OK_S3
-Condition <- data$Study3rawdataset.Condition_S3
-IN <- data$IN_S3
-RM <- data$RM_S3Three
+multipleMediation <- '
+    Y ~ b1 * M1 + b2 * M2 + c * X
+    M1 ~ a1 * X
+    M2 ~ a2 * X
+    indirect1 := a1 * b1
+    indirect2 := a2 * b2
+    total    := c + (a1 * b1) + (a2 * b2)
+    M1 ~~ M2 
+'
+fit <- sem(model = multipleMediation, data = Data)
+summary(fit)  
 
-OK <- as.numeric(OK)
-Condition <- as.numeric(Condition)
-IN <- as.numeric(IN)
-RM <- as.numeric(RM)
-
-vars <- data.frame(OK, Condition, IN, RM)
-
-vars <- vars[-c(647:648), ]
-
-model <- 
-  mediation2(
-  y = "OK",
-  x = "Condition",
-  m1 = "IN",
-  m2 = "RM",
-  cvs = NULL,
-  df = vars,
-  with_out = F,
-  nboot = 1000,
-  conf_level = 0.95
-)
+```
 
 
+```{r Serial Mediation with 3 item race mini}
+X <- Study3rawdataset$Condition_S3
+M1 <- IN_S3
+M2 <- RM_S3Three
+Y <- OK_S3
+Data <- data.frame(X=Study3rawdataset$Condition_S3, Y=OK_S3, M1=IN_S3, M2=RM_S3Three)
+
+multipleMediation <- '
+    Y ~ b1 * M1 + b2 * M2 + c * X
+    M1 ~ a1 * X
+    M2 ~ a2 * X
+    indirect1 := a1 * b1
+    indirect2 := a2 * b2
+    total    := c + (a1 * b1) + (a2 * b2)
+    M1 ~~ M2 
+'
+fit <- sem(model = multipleMediation, data = Data)
+summary(fit)  
 
 ```
 
