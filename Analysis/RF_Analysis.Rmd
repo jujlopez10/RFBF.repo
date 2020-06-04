@@ -803,7 +803,7 @@ NRM.2_3df <- as.data.frame(NRM.2_3raw)
 RM_S2Full <- dplyr::coalesce(BRM.2, NRM.2)
 RM_S2Three <- dplyr::coalesce(BRM.2_3, NRM.2_3)
 
-# t.test(NtvRM_S2, BlkRM_S2, paired = FALSE, var.equal = TRUE)
+# t.test(NRM.2_3, BRM.2_3, paired = FALSE, var.equal = TRUE)
 
 ```
 
@@ -851,6 +851,17 @@ fit <- sem(model, data = Data)
 summary(fit)
 
 ```
+
+```{r SPSS CSV}
+
+# Con <- Study2rawdataset$Condition_S2
+# RM <- RM_S2Three
+# OK <- OK_S2
+# vars <- data.frame(Con, RM, OK)
+
+# write.csv(vars, "Study2_SPSS.csv")
+```
+
 
 Demographics
 
@@ -979,7 +990,7 @@ t.test(BRM.3, NRM.3, paired = FALSE, var.equal = TRUE)
 
 ```
 
-Creating Acceptability Variable combining Redface and Blackface
+Creating Acceptability Variable combining Redface and Blackfacef
 ```{r OK}
 BFS3.fullraw <- Study3rawdataset %>% dplyr::select(
   B1_1, B1_2, B1_3, B1_4,
@@ -1115,6 +1126,8 @@ Study3rawdataset <- mutate(Study3rawdataset, NIN_S3 = multicon::composite(NIN.3r
 
 Study3rawdataset <- mutate(Study3rawdataset, IN_S3 = dplyr::coalesce(BIN_S3, NIN_S3))
 
+describe(Study3rawdataset$IN_S3)
+
 ```
 
 ```{r Invisibility Ttest}
@@ -1145,7 +1158,7 @@ multipleMediation <-
   de := c
 "
 
-fit <- sem(model = multipleMediation, data = vars)
+fit <- sem(model = multipleMediation, data = Data)
 summary(fit)
 ```
 
@@ -1441,20 +1454,23 @@ add_index(mediation_model.RM, times = 5000, level = 0.05)
 Demographics
 
 ```{r Demographics}
-# N = 774
+# N = 780
 
-# Gender Women = 57.6
+# Gender Women = 51.67
 table(Study4rawdataset$Gender)
 
-# Age = 22.41
+# Age = 38.70
 Study4rawdataset$Age[Study4rawdataset$Age == 445] <- 45
 Study4rawdataset$Age[Study4rawdataset$Age == 1959] <- 60
 Study4rawdataset$Age[Study4rawdataset$Age == 1995] <- 24
 Age <- as.numeric(Study4rawdataset$Age)
 mean(Age, na.rm = TRUE)
+sd(Age, na.rm = TRUE)
 
 
-# FGC Status = 88.2%
+# CGC Status = 50.51%
 Edu4 <- Study4rawdataset %>% filter(PrimaryEd >= 4 | SecondEdu >= 4)
+
+count(Edu4)
 
 ```

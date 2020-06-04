@@ -1,0 +1,886 @@
+---
+title: "MainEffects & Linear Regressions"
+author: "Julisa"
+date: "4/17/2020"
+output: html_document
+---
+
+```{r Packages} 
+library(tidyverse)
+library(abind)
+library(foreach)
+library(haven)
+library(labelled)
+library(psych)
+library(multicon)
+library(varhandle)
+library(hablar)
+library(haven)
+library(tidyr)
+library(lavaan)
+library(dplyr)
+library(here)
+library(rio)
+library(JSmediation)
+
+# install.packages("lavaan")
+# install.packages("tidyr")
+# devtools::install_github("hadley/tidyverse")
+
+```
+
+```{r Center Functions}
+
+center<-function(MOD)
+{
+  centered<-MOD-mean(MOD,na.rm=TRUE)
+  return(centered)
+}
+
+low<-function(MOD)
+{
+  low<-(MOD-mean(MOD,na.rm=TRUE))+sd(MOD, na.rm=TRUE)
+  return(low)
+}
+
+high<-function(MOD)
+{
+  high<-(MOD-mean(MOD, na.rm=TRUE))-sd(MOD, na.rm=TRUE)
+  return(high)
+}
+
+gmc <- function(MOD, grp) 
+  { 
+  gmcentered<- (MOD-tapply(MOD,grp,mean,na.rm=TRUE)[grp])
+  return(gmcentered)
+
+}
+
+```
+
+Study 2
+
+Prepping Data 
+```{r Study 2 - Load in Data}
+
+Study2rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study2.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
+Study2rawdataset<- Study2rawdataset[-1, ]  # Getting rid of unneccesary rows
+
+Study2rawdataset <- Study2rawdataset %>% retype()
+
+data <- Study2rawdataset
+
+# Prepping by setting NA to 0 for Race variables 
+data$Race_1[is.na(data$Race_1)] <- 0
+data$Race_2[is.na(data$Race_2)] <- 0
+data$Race_3[is.na(data$Race_3)] <- 0
+data$Race_4[is.na(data$Race_4)] <- 0
+data$Race_5[is.na(data$Race_5)] <- 0
+data$Race_6[is.na(data$Race_6)] <- 0
+data$Race_7[is.na(data$Race_7)] <- 0
+
+# Creating Race variable 
+data <- data %>% mutate(Race = case_when(
+                    Race_1 == 1 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "1",
+                    Race_1 == 0 & Race_2 == 1 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "2",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 1 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "3",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 1 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "4",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 1 & Race_6 == 0 & Race_7 == 0 ~ "5",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 1 & Race_7 == 0 ~ "6",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 1 ~ "7"))
+
+# Filter by Race
+Study2rawdataset <- data %>% filter(Race == 3) 
+
+# Filter out the not finished surveys 
+Study2rawdataset <- Study2rawdataset %>% filter(V10 == 1)
+
+```
+
+```{r Creating Conditions}
+
+Study2rawdataset <- mutate(Study2rawdataset, Target = ifelse(is.na(Study2rawdataset$BFPaint1), 1, -1)) 
+
+Study2rawdataset <- mutate(Study2rawdataset, Condition = ifelse(is.na(Study2rawdataset$BFPaint1), 1, 0)) 
+
+
+Study2rawdataset <- Study2rawdataset %>% 
+  mutate(BlkTarget = recode(Target, "-1"=0, "1"=1))
+
+Study2rawdataset <- Study2rawdataset %>% 
+  mutate(NtvTarget = recode(Target, "-1"=1, "1"=0))
+
+```
+
+Creating Acceptability Variable combining Redface and Blackface
+```{r BFOK}
+BFS2.fullraw <- Study2rawdataset %>% dplyr::select(
+  BFPaint1_1, BFPaint1_2, BFPaint1_3, BFPaint1_4,
+  BFPaintWom1_1, BFPaintWom1_2, BFPaintWom1_3, BFPaintWom1_4,
+  BFGroup1_1, BFGroup1_2, BFGroup1_3, BFGroup1_4,
+  BFPaintMan2_1, BFPaintMan2_2, BFPaintMan2_3, BFPaintMan2_4,
+  BFGroup2_1, BFGroup2_2, BFGroup2_3, BFGroup2_4
+)
+
+BF.Key = c(1, -1, 1, -1, 
+           1, -1, 1, -1,
+           1, -1, 1, -1,
+           1, -1, 1, -1,
+           1, -1, 1, -1)
+
+BFS2.full <-
+  reverse.code(BF.Key,
+               BFS2.fullraw,
+               mini = 1,
+               maxi = 7)
+
+BFS2.df <- as.data.frame(BFS2.full)
+
+Study2rawdataset <- Study2rawdataset %>% 
+  mutate(BFOK_S2 =
+  multicon::composite(BFS2.full,
+  rel = TRUE, 
+  nomiss = 0.6))
+
+```
+
+```{r RFOK}
+RFS2.fullraw <- Study2rawdataset %>% dplyr::select(
+  RFPaintGroup2_1, RFPaintGroup2_2, RFPaintGroup2_3, RFPaintGroup2_4, 
+  RFPaintWom1_1, RFPaintWom1_2, RFPaintWom1_3, RFPaintWom1_4, 
+  RFPaintGroup1_1, RFPaintGroup1_2, RFPaintGroup1_3, RFPaintGroup1_4,
+  RFPaintMan2_1, RFPaintMan2_2, RFPaintMan2_3, RFPaintMan2_4, 
+  RFGroup2_1, RFGroup2_2, RFGroup2_3, RFGroup2_4
+  )
+
+RFS2.full <-
+  reverse.code(BF.Key,
+               RFS2.fullraw,
+               mini = 1,
+               maxi = 7)
+
+RFS2.df <- as.data.frame(RFS2.full)
+
+Study2rawdataset <- Study2rawdataset %>% 
+  mutate(RFOK_S2 =
+  multicon::composite(RFS2.full,
+  rel = TRUE, 
+  nomiss = 0.6))
+```
+
+```{r OK}
+Study2rawdataset <- Study2rawdataset %>% 
+  mutate(OK_S2 = dplyr::coalesce(BFOK_S2, RFOK_S2))
+```
+
+Differences in Racism Minimization Predicting Difference in Acceptability
+
+```{r RacismMini}
+
+# Full Black race mini
+
+BRM.2raw <- Study2rawdataset %>% dplyr::select(
+  RacismMini_1, RacismMini_2, RacismMini_3, RacismMini_4, 
+  RacismMini_5, RacismMini_6, RacismMini_7, RacismMini_8, 
+  RacismMini_9, RacismMini_10)
+
+RM.key = c(1, -1, 1, -1, -1, -1, -1, 1, 1, 1)
+
+BRM.2r <- reverse.code(RM.key, BRM.2raw, mini = 1, max = 7)
+
+Study2rawdataset <- Study2rawdataset %>% 
+  mutate(BRM.2 =
+  multicon::composite(BRM.2r,
+  rel = TRUE, 
+  nomiss = 0.6))
+
+BRM.2df <- as.data.frame(BRM.2r)
+
+# 3 item Black race mini
+
+BRM.2_3raw <- Study2rawdataset %>% dplyr::select(
+  RacismMini_8, 
+  RacismMini_9, RacismMini_10
+)
+
+Study2rawdataset <- Study2rawdataset %>% 
+  mutate(BRM.2_3 =
+  multicon::composite(BRM.2_3raw,
+  rel = TRUE, 
+  nomiss = 0.6))
+
+BRM.2_3df <- as.data.frame(BRM.2_3raw)
+
+# Full Native race mini
+
+NRM.2raw <- Study2rawdataset %>% dplyr::select(
+  RacismMini_1.1, RacismMini_2.1, RacismMini_3.1, RacismMini_4.1, 
+  RacismMini_5.1, RacismMini_6.1, RacismMini_7.1, RacismMini_8.1, 
+  RacismMini_9.1, RacismMini_10.1)
+
+NRM.2r <- reverse.code(RM.key, NRM.2raw, mini = 1, max = 7)
+
+Study2rawdataset <- Study2rawdataset %>% 
+  mutate(NRM.2 =
+  multicon::composite(NRM.2r,
+  rel = TRUE, 
+  nomiss = 0.6))
+
+NRM.2df <- as.data.frame(NRM.2r)
+
+# 3 item Native race mini
+
+NRM.2_3raw <- Study2rawdataset %>% dplyr::select(
+  RacismMini_8.1, 
+  RacismMini_9.1, RacismMini_10.1)
+
+Study2rawdataset <- Study2rawdataset %>% 
+  mutate(NRM.2_3 =
+  multicon::composite(NRM.2_3raw,
+  rel = TRUE, 
+  nomiss = 0.6))
+
+NRM.2_3df <- as.data.frame(NRM.2_3raw)
+
+Study2rawdataset <- Study2rawdataset %>% 
+  mutate(RM_S2Full = dplyr::coalesce(BRM.2, NRM.2))
+
+Study2rawdataset <- Study2rawdataset %>% 
+  mutate(RM_S2Three = dplyr::coalesce(BRM.2_3, NRM.2_3))
+
+describe(Study2rawdataset$RM_S2Three)
+
+# t.test(NtvRM_S2, BlkRM_S2, paired = FALSE, var.equal = TRUE)
+
+```
+
+```{r Linear Regressions}
+
+NRM <- lm(RFOK_S2 ~ 1 + center(NRM.2), data = Study2rawdataset)
+summary(NRM)
+
+BRM <- lm(BFOK_S2 ~ 1 + center(BRM.2), data = Study2rawdataset)
+summary(BRM)
+
+NRM <- lm(RFOK_S2 ~ 1 + center(NRM.2_3), data = Study2rawdataset)
+summary(NRM)
+
+BRM <- lm(BFOK_S2 ~ 1 + center(BRM.2_3), data = Study2rawdataset)
+summary(BRM)
+
+OK_con <- lm(OK_S2 ~ 1 + Condition, data = Study2rawdataset)
+summary(OK_con)
+
+RM_con <- lm(RM_S2Full ~ 1 + Condition, data = Study2rawdataset)
+summary(RM_con)
+
+RM_con <- lm(RM_S2Three ~ 1 + Condition, data = Study2rawdataset)
+summary(RM_con)
+
+```
+
+
+```{r Main Effects with Full Race Mini}
+
+ME_full <- lm(formula = OK_S2 ~ 1 + center(RM_S2Full) + Target + center(RM_S2Full) * Target, data = Study2rawdataset)
+
+summary(ME_full)
+
+```
+
+
+```{r Main Effects with with Race Mini subscale}
+
+ME_three <- lm(formula = OK_S2 ~ 1 + center(RM_S2Three) + Target + center(RM_S2Three) * Target, data = Study2rawdataset)
+
+summary(ME_three)
+
+```
+
+
+```{r Native Simple Slopes with Full Race Mini}
+
+Ntv_full <- lm(formula = OK_S2 ~ 1 + center(RM_S2Full) + NtvTarget + center(RM_S2Full) * NtvTarget, data = Study2rawdataset)
+
+summary(Ntv_full)
+
+```
+
+```{r Native Simple Slopes with Race Mini subscale}
+
+Ntv_three <- lm(formula = OK_S2 ~ 1 + center(RM_S2Three) + NtvTarget + center(RM_S2Three) * NtvTarget, data = Study2rawdataset)
+
+summary(Ntv_three)
+
+```
+
+
+```{r Black Simple Slopes with Full Race Mini}
+
+Blk_full <- lm(formula = OK_S2 ~ 1 + center(RM_S2Full) + BlkTarget + center(RM_S2Full) * BlkTarget, data = Study2rawdataset)
+
+summary(Blk_full)
+
+```
+
+```{r Black Simple Slopes with Race Mini subscale}
+
+Blk_three <- lm(formula = OK_S2 ~ 1 + center(RM_S2Three) + BlkTarget + center(RM_S2Three) * BlkTarget, data = Study2rawdataset)
+
+summary(Blk_three)
+
+```
+
+```{r Study 3 - Load in Data}
+
+Study3rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study3_Randomized.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
+Study3rawdataset<- Study3rawdataset[-1, ]  # Getting rid of unneccesary rows
+
+Study3rawdataset <- Study3rawdataset %>% retype()
+
+data <- Study3rawdataset
+
+# Prepping by setting NA to 0 for Race variables 
+data$Race_1[is.na(data$Race_1)] <- 0
+data$Race_2[is.na(data$Race_2)] <- 0
+data$Race_3[is.na(data$Race_3)] <- 0
+data$Race_4[is.na(data$Race_4)] <- 0
+data$Race_5[is.na(data$Race_5)] <- 0
+data$Race_6[is.na(data$Race_6)] <- 0
+data$Race_7[is.na(data$Race_7)] <- 0
+
+# Creating Race variable 
+data <- data %>% mutate(Race = case_when(
+                    Race_1 == 1 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "1",
+                    Race_1 == 0 & Race_2 == 1 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "2",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 1 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "3",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 1 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "4",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 1 & Race_6 == 0 & Race_7 == 0 ~ "5",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 1 & Race_7 == 0 ~ "6",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 1 ~ "7"))
+
+# Filter by Race
+Study3rawdataset <- data %>% filter(Race == 3) 
+
+# Filter out the not finished surveys 
+Study3rawdataset <- Study3rawdataset %>% filter(V10 == 1)
+
+```
+
+```{r Creating Conditions}
+Study3rawdataset <- mutate(Study3rawdataset, Target = ifelse(is.na(Study3rawdataset$B1_1), 1, -1))
+
+Study3rawdataset <- mutate(Study3rawdataset, Condition = ifelse(is.na(Study3rawdataset$B1_1), 1, 0))
+
+Study3rawdataset <- Study3rawdataset %>% 
+  mutate(BlkTarget = recode(Target, "-1"=0, "1"=1))
+
+Study3rawdataset <- Study3rawdataset %>% 
+  mutate(NtvTarget = recode(Target, "-1"=1, "1"=0))
+```
+
+Creating Acceptability Variable combining Redface and Blackface
+```{r OK}
+BFS3.fullraw <- Study3rawdataset %>% dplyr::select(
+  B1_1, B1_2, B1_3, B1_4,
+  B2_1, B2_2, B2_3, B2_4,
+  B3_1, B3_2, B3_3, B3_4,
+  B5_1, B5_2, B5_3, B5_4,
+  B6_1, B6_2, B6_3, B6_4
+)
+
+BF.Key = c(1, -1, 1, -1, 
+           1, -1, 1, -1,
+           1, -1, 1, -1,
+           1, -1, 1, -1,
+           1, -1, 1, -1)
+
+BFS3.full <-
+  reverse.code(BF.Key,
+               BFS3.fullraw,
+               mini = 1,
+               maxi = 7)
+
+BFS3.df <- as.data.frame(BFS3.full)
+
+Study3rawdataset <- Study3rawdataset %>% 
+  mutate(BFOK =
+  multicon::composite(BFS3.full,
+  rel = TRUE, 
+  nomiss = 0.6))
+
+RFS3.fullraw <- Study3rawdataset %>% dplyr::select(
+  R1_1, R1_2, R1_3, R1_4, 
+  R2_1, R2_2, R2_3, R2_4,
+  R3_1, R3_2, R3_3, R3_4,
+  R5_1, R5_2, R5_3, R5_4,
+  R6_1, R6_2, R6_3, R6_4
+  )
+
+RFS3.full <-
+  reverse.code(BF.Key,
+               RFS3.fullraw,
+               mini = 1,
+               maxi = 7)
+
+RFS3.df <- as.data.frame(RFS3.full)
+
+Study3rawdataset <- Study3rawdataset %>% 
+  mutate(RFOK =
+  multicon::composite(RFS3.full,
+                      rel = TRUE,
+                      nomiss = 0.6))
+
+Study3rawdataset <- Study3rawdataset %>% 
+  mutate(OK = dplyr::coalesce(BFOK, RFOK))
+```
+
+Differences in Racism Minimization Predicting Difference in Acceptability
+
+```{r RacismMini}
+# Full Black Racism Mini
+
+BRM.3raw <- Study3rawdataset %>% dplyr::select(
+  BlkRacismMini_1, BlkRacismMini_2, BlkRacismMini_3,
+  BlkRacismMini_4, BlkRacismMini_5, BlkRacismMini_6, 
+  BlkRacismMini_7, BlkRacismMini_8, BlkRacismMini_9,
+  BlkRacismMini_10)
+
+RM.3key = c(1, -1, 1, -1, -1, -1, -1, 1, 1, 1)
+
+BRM.3r <- reverse.code(RM.3key, BRM.3raw, mini = 1, max = 7)
+
+Study3rawdataset <- Study3rawdataset %>% mutate(BRM.3Full = multicon::composite(BRM.3r,
+  rel = TRUE, 
+  nomiss = 0.6))
+  
+BRM.3dfFull <- as.data.frame(BRM.3r)
+
+# 3 item Black Racism Mini
+
+BRM.3rawThree <- Study3rawdataset %>% dplyr::select(
+  BlkRacismMini_8, BlkRacismMini_9, BlkRacismMini_10)
+
+Study3rawdataset <- Study3rawdataset %>% 
+  mutate(BRM_3Three = multicon::composite(BRM.3rawThree,
+  rel = TRUE, 
+  nomiss = 0.6))
+
+BRM.3dfThree <- as.data.frame(BRM.3rawThree)
+
+# Full Native Racism Mini
+NRM.3raw <- Study3rawdataset %>% dplyr::select(
+  NtvRacismMini_1, NtvRacismMini_2, NtvRacismMini_3, 
+  BtvRacismMini_4, NtvRacismMini_5, NtvRacismMini_6, 
+  NtvRacismMini_7, NtvRacismMini_8, NtvRacismMini_9, 
+  NtvRacismMini_10)
+
+NRM.3r <- reverse.code(RM.3key, NRM.3raw, mini = 1, max = 7)
+
+Study3rawdataset <- Study3rawdataset %>% 
+  mutate(NRM.3Full = multicon::composite(NRM.3raw,
+  rel = TRUE, 
+  nomiss = 0.6))
+
+NRM.3dfFull <- as.data.frame(NRM.3raw)
+
+
+
+# 3 item Native Racism Mini
+
+NRM.3rawThree <- Study3rawdataset %>% dplyr::select(
+  NtvRacismMini_8, NtvRacismMini_9, NtvRacismMini_10)
+
+Study3rawdataset <- Study3rawdataset %>% 
+  mutate(NRM_3Three = multicon::composite(NRM.3rawThree,
+  rel = TRUE, 
+  nomiss = 0.6))
+
+NRM.3dfThree <- as.data.frame(NRM.3rawThree)
+
+Study3rawdataset <- Study3rawdataset %>% 
+  mutate(RM_S3Full = dplyr::coalesce(BRM.3Full, NRM.3Full))
+
+Study3rawdataset <- Study3rawdataset %>% 
+  mutate(RM_S3Three = dplyr::coalesce(BRM_3Three, NRM_3Three))
+
+# t.test(NRM.3Full, BRM.3Full, paired = FALSE, var.equal = TRUE)
+
+describe(Study3rawdataset$NRM_3Three)
+
+
+```
+
+```{r Invisibility}
+BIN.3raw <- Study3rawdataset %>% dplyr::select(
+  BlkContemporaryInvis_1, BlkContemporaryInvis_2, BlkContemporaryInvis_3,
+  BlkContemporaryInvis_4, BlkContemporaryInvis_5, BlkContemporaryInvis_6
+  )
+
+IN.3key = c(1, -1, 1, 1, 1, 1)
+
+BIN.3r <- reverse.code(IN.3key,
+                      BIN.3raw,
+                      mini = 1,
+                      max = 7)
+
+BIN.3df <- as.data.frame(BIN.3r)
+
+Study3rawdataset <- Study3rawdataset %>% 
+  mutate(BIN_S3 = multicon::composite(BIN.3r,
+  rel = TRUE, 
+  nomiss = 0.6))
+
+NIN.3raw <- Study3rawdataset %>% dplyr::select(
+  NtvContemporaryInvis_1, NtvContemporaryInvis_2, NtvContemporaryInvis_3,
+  NtvContemporaryInvis_4, NtvContemporaryInvis_5, NtvContemporaryInvis_6)
+
+NIN.3r <- reverse.code(IN.3key,
+                      NIN.3raw,
+                      mini = 1,
+                      max = 7)
+
+NIN.3df <- as.data.frame(NIN.3r)
+
+Study3rawdataset <- Study3rawdataset %>% 
+  mutate(NIN_S3 = multicon::composite(NIN.3r,
+  rel = TRUE, 
+  nomiss = 0.6))
+
+Study3rawdataset <- Study3rawdataset %>% 
+  mutate(IN_S3 = dplyr::coalesce(BIN_S3, NIN_S3))
+
+
+
+```
+
+
+```{r Linear Regressions}
+
+NRM <- lm(RFOK ~ 1 + center(NRM.3Full), data = Study3rawdataset)
+summary(NRM)
+
+BRM <- lm(BFOK ~ 1 + center(BRM.3Full), data = Study3rawdataset)
+summary(BRM)
+
+NRM <- lm(RFOK ~ 1 + center(NRM_3Three), data = Study3rawdataset)
+summary(NRM)
+
+BRM <- lm(BFOK ~ 1 + center(BRM_3Three), data = Study3rawdataset)
+summary(BRM)
+
+NIN <- lm(RFOK ~ 1 + center(NIN_S3), data = Study3rawdataset)
+summary(NIN)
+
+BIN <- lm(BFOK ~ 1 + center(BIN_S3), data = Study3rawdataset)
+summary(BIN)
+
+OK_con <- lm(OK ~ 1 + Condition, data = Study3rawdataset)
+summary(OK_con)
+
+RM_con <- lm(RM_S3Full ~ 1 + Condition, data = Study3rawdataset)
+summary(RM_con)
+
+RM_con <- lm(RM_S3Three ~ 1 + Condition, data = Study3rawdataset)
+summary(RM_con)
+
+IN_con <- lm(IN_S3 ~ 1 + Condition, data = Study3rawdataset)
+summary(IN_con)
+
+```
+
+```{r Main Effects with Full Race Mini}
+
+ME_full <- lm(formula = OK ~ 1 + Target + center(RM_S3Full) + center(RM_S3Full) * Target + center(IN_S3) + center(IN_S3) * Target, data = Study3rawdataset)
+
+summary(ME_full)
+
+```
+
+
+```{r Main Effects with with Race Mini subscale}
+
+ME_three <- lm(formula = OK ~ 1 + Target + center(RM_S3Three) + center(RM_S3Three) * Target + center(IN_S3) + center(IN_S3) * Target, data = Study3rawdataset)
+
+summary(ME_three)
+
+```
+
+
+```{r Native Simple Slopes with Full Race Mini}
+
+Ntv_full <- lm(formula = OK ~ 1 + NtvTarget + center(RM_S3Full) + center(RM_S3Full) * NtvTarget + center(IN_S3) + center(IN_S3) * NtvTarget, data = Study3rawdataset)
+
+summary(Ntv_full)
+
+```
+
+```{r Native Simple Slopes with Race Mini subscale}
+
+Ntv_three <- lm(formula = OK ~ 1 + NtvTarget + center(RM_S3Three) + center(RM_S3Three) * NtvTarget + center(IN_S3) + center(IN_S3) * NtvTarget, data = Study3rawdataset)
+
+summary(Ntv_three)
+
+```
+
+
+```{r Black Simple Slopes with Full Race Mini}
+
+Blk_full <- lm(formula = OK ~ 1 + BlkTarget + center(RM_S3Full) + center(RM_S3Full) * BlkTarget + center(IN_S3) + center(IN_S3) * BlkTarget, data = Study3rawdataset)
+
+summary(Blk_full)
+
+```
+
+```{r Black Simple Slopes with Race Mini subscale}
+
+Blk_three <- lm(formula = OK ~ 1 + BlkTarget + center(RM_S3Three) + center(RM_S3Three) * BlkTarget+ center(IN_S3) + center(IN_S3) * BlkTarget, data = Study3rawdataset)
+
+summary(Blk_three)
+
+```
+
+
+```{r Study 4 - Load in Data}
+
+Study4rawdataset <- read.csv("C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study4_Randomized.csv", header = T, sep = ",", na=-99, stringsAsFactors = FALSE)
+
+Study4rawdataset<- Study4rawdataset[-1, ]  # Getting rid of unneccesary rows
+
+Study4rawdataset <- Study4rawdataset %>% retype()
+
+data <- Study4rawdataset
+
+# Prepping by setting NA to 0 for Race variables 
+data$Race_1[is.na(data$Race_1)] <- 0
+data$Race_2[is.na(data$Race_2)] <- 0
+data$Race_3[is.na(data$Race_3)] <- 0
+data$Race_4[is.na(data$Race_4)] <- 0
+data$Race_5[is.na(data$Race_5)] <- 0
+data$Race_6[is.na(data$Race_6)] <- 0
+data$Race_7[is.na(data$Race_7)] <- 0
+
+# Creating Race variable 
+data <- data %>% mutate(Race = case_when(
+                    Race_1 == 1 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "1",
+                    Race_1 == 0 & Race_2 == 1 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "2",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 1 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "3",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 1 & Race_5 == 0 & Race_6 == 0 & Race_7 == 0 ~ "4",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 1 & Race_6 == 0 & Race_7 == 0 ~ "5",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 1 & Race_7 == 0 ~ "6",
+                    Race_1 == 0 & Race_2 == 0 & Race_3 == 0 & Race_4 == 0 & Race_5 == 0 & Race_6 == 0 & Race_7 == 1 ~ "7"))
+
+# Filter by Race
+Study4rawdataset <- data %>% filter(Race == 3) 
+
+# Filter out the not finished surveys 
+Study4rawdataset <- Study4rawdataset %>% filter(V10 == 1)
+
+```
+
+```{r BF OK}
+BFS4.raw <- Study4rawdataset %>% dplyr::select(
+  B1_1, B1_2, B1_3, B1_4,
+  B2_1, B2_2, B2_3, B2_4,
+  B3_1, B3_2, B3_3, B3_4)
+
+BF.4Key = c(1, -1, 1, -1, 
+           1, -1, 1, -1,
+           1, -1, 1, -1) #Reverse Scoring Items
+
+BFS4.r <-
+  reverse.code(BF.4Key,
+               BFS4.raw,
+               mini = 1,
+               maxi = 7)
+
+BFS4.comp <-
+  multicon::composite(BFS4.r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+BFS4.OK <- as.data.frame(BFS4.comp)
+
+```
+
+```{r RF OK}
+RFS4.raw <- Study4rawdataset %>% dplyr::select(
+  R1_1, R1_2, R1_3, R1_4, 
+  R2_1, R2_2, R2_3, R2_4,
+  R3_1, R3_2, R3_3, R3_4)
+
+RFS4.r <-
+  reverse.code(BF.4Key,
+               RFS4.raw,
+               mini = 1,
+               maxi = 7)
+
+RFS4.comp <-
+  multicon::composite(RFS4.r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+RFS4.OK <- as.data.frame(RFS4.comp)
+
+Study4rawdataset <- Study4rawdataset %>% mutate(OK = (RFS4.comp - BFS4.comp))
+
+```
+
+```{r RacismMini}
+
+# Full Black Race Mini
+
+BRM.4raw <- Study4rawdataset %>% dplyr::select(
+  BlkRacismMini_1, BlkRacismMini_2, BlkRacismMini_3, BlkRacismMini_4, 
+  BlkRacismMini_5, BlkRacismMini_6, BlkRacismMini_7, BlkRacismMini_8, 
+  BlkRacismMini_9, BlkRacismMini_10)
+
+RM.4key = c(1, -1, 1, -1, -1, -1, -1, 1, 1, 1)
+
+BRM.4r <- reverse.code(RM.4key,
+                      BRM.4raw,
+                      mini = 1,
+                      max = 7)
+
+BRM_S4Full <- multicon::composite(BRM.4r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+BRM.4dfFull <- as.data.frame(BRM.4r)
+
+# 3 item Black Race Mini
+
+BRM.4rawThree <- Study4rawdataset %>% dplyr::select(
+  BlkRacismMini_8, BlkRacismMini_9, BlkRacismMini_10
+)
+
+BRM_S4Three <- multicon::composite(BRM.4rawThree,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+BRM.4dfThree <- as.data.frame(BRM.4rawThree)
+
+# Full Native Race Mini
+
+NRM.4raw <- Study4rawdataset %>% dplyr::select(
+  NtvRacismMini_1, NtvRacismMini_2, NtvRacismMini_3, NtvRacismMini_4, 
+  NtvRacismMini_5, NtvRacismMini_6, NtvRacismMini_7, NtvRacismMini_8, 
+  NtvRacismMini_9, NtvRacismMini_10)
+
+NRM.4r <- reverse.code(RM.4key,
+                      NRM.4raw,
+                      mini = 1,
+                      max = 7)
+
+NRM_S4Full <- multicon::composite(NRM.4r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+NRM.4dfFull <- as.data.frame(NRM.4r)
+
+# 3 item Native Race Mini
+
+NRM.4rawThree <- Study4rawdataset %>% dplyr::select(
+  NtvRacismMini_8, 
+  NtvRacismMini_9, NtvRacismMini_10
+)
+
+NRM_S4Three <- multicon::composite(NRM.4rawThree,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+NRM.4dfThree <- as.data.frame(NRM.4rawThree)
+
+Study4rawdataset <- Study4rawdataset %>% mutate(RMThree = (BRM_S4Three - NRM_S4Three))
+Study4rawdataset <- Study4rawdataset %>% mutate(RMFull = (BRM_S4Full - NRM_S4Full))
+
+
+# t.test(NRM_S4Full, BRM_S4Full, paired = TRUE)
+# t.test(NRM_S4Three, BRM_S4Three, paired = TRUE)
+
+```
+
+```{r Invisibility}
+BIN.4raw <- Study4rawdataset %>% dplyr::select(
+  BlkContemporaryInvis_1, BlkContemporaryInvis_2, BlkContemporaryInvis_3,
+  BlkContemporaryInvis_4, BlkContemporaryInvis_5, BlkContemporaryInvis_6
+  )
+
+IN.4key = c(1, -1, 1, 
+            1, 1, 1)
+
+BIN.4r <- reverse.code(IN.4key,
+                      BIN.4raw,
+                      mini = 1,
+                      max = 7)
+
+BIN_S4 <- multicon::composite(BIN.4r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+BIN.4df <- as.data.frame(BIN_S4)
+
+NIN.4raw <- Study4rawdataset %>% dplyr::select(
+  NtvContemporaryInvis_1, NtvContemporaryInvis_2, NtvContemporaryInvis_3,
+  NtvContemporaryInvis_4, NtvContemporaryInvis_5, NtvContemporaryInvis_6)
+
+NIN.4r <- reverse.code(IN.4key,
+                      NIN.4raw,
+                      mini = 1,
+                      max = 7)
+
+NIN_S4 <- multicon::composite(NIN.4r,
+  rel = TRUE, 
+  nomiss = 0.6)
+
+NIN.4df <- as.data.frame(NIN_S4)
+
+Study4rawdataset <- Study4rawdataset %>% mutate(IN = (NIN_S4 - BIN_S4))
+
+```
+
+
+```{r Linear Regressions}
+
+NRM <- lm(RFS4.comp ~ 1 + center(NRM_S4Full), data = Study4rawdataset)
+summary(NRM)
+
+BRM <- lm(BFS4.comp ~ 1 + center(BRM_S4Full), data = Study4rawdataset)
+summary(BRM)
+
+NRM <- lm(RFS4.comp ~ 1 + center(NRM_S4Three), data = Study4rawdataset)
+summary(NRM)
+
+BRM <- lm(BFS4.comp ~ 1 + center(BRM_S4Three), data = Study4rawdataset)
+summary(BRM)
+
+NIN <- lm(RFS4.comp ~ 1 + center(NIN_S4), data = Study4rawdataset)
+summary(NIN)
+
+BIN <- lm(BFS4.comp ~ 1 + center(BIN_S4), data = Study4rawdataset)
+summary(BIN)
+
+RM <- lm(OK ~ 1 + center(RMFull), data = Study4rawdataset)
+summary(RM)
+
+RM <- lm(OK ~ 1 + center(RMThree), data = Study4rawdataset)
+summary(RM)
+
+IN <- lm(OK ~ 1 + center(IN), data = Study4rawdataset)
+summary(IN)
+
+```
+
+```{r Full RM}
+
+ME_full <- lm(OK ~ 1 + center(IN) + center(RMFull), data = Study4rawdataset)
+summary(ME_full)
+```
+
+```{r Subscale RM}
+
+ME_three <- lm(OK ~ 1 + center(IN) + center(RMThree), data = Study4rawdataset)
+summary(ME_three)
+```

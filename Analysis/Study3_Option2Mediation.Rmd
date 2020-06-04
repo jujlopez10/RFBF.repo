@@ -1,0 +1,137 @@
+---
+title: "Study3_Analysis"
+author: "Julisa"
+date: "5/29/2020"
+output: html_document
+---
+```{r Data}
+# Load in Study3rawdataset
+```
+
+```{r Packages}
+library(devtools)
+devtools::install_github("doomlab/MeMoBootR")
+library(MeMoBootR)
+```
+
+
+```{r}
+
+Condition <- Study3rawdataset$Condition_S3
+IN <- Study3rawdataset$IN_S3
+RM <- Study3rawdataset$RM_S3Three
+OK <- Study3rawdataset$OK_S3
+Data <- data.frame(Condition, OK, IN, RM)
+
+Data <- Data[-c(647:648), ]
+
+model <- 
+  mediation2(
+  y = "OK",
+  x = "Condition",
+  m1 = "IN",
+  m2 = "RM",
+  cvs = NULL,
+  df = Data,
+  with_out = F,
+  nboot = 5000,
+  conf_level = 0.95
+)
+
+```
+
+```{r Multicollinearity}
+# Making sure none of the predictors are above .9 in correlation. We expect suppression of correlation in mediation models, that is the point of mediation models 
+
+model$datascreening$correl
+
+# There are no predictors that are correlated more than .63 suggesting that we meet the multi collinearity assumption
+
+```
+
+```{r Linearity}
+# QQ plot assesses whether data is normally distributed. 
+
+print(model$datascreening$linearity)
+
+# Close to the line, data is slightly above line and both ends are pointed upward and slightly curves down. The curve off in the exteremeties suggest that there are more extreme values than would be expected if data came from a normal distribution. 
+
+```
+
+
+```{r Normality}
+# Normality of standardized residuals
+# Residuals are the difference between the observed value of difference of acceptability and the predicted value. Each point has one residual.
+# The sum and the mean of residuals are equal to zero
+# Standardized residuals are found my dividing residuals by the square root of the expected value (m = 0, sd = 1)
+# Should be centered over zero and equally distributed on each side of zero
+
+model$datascreening$normality
+
+# Our histogram of standardized residuals are slightly skewed 
+```
+
+```{r Homogeniety}
+# Homogeniety: Should be centered around zero in each direction
+# Homoscedacity: Data should be equally distributed
+
+model$datascreening$homogen
+
+# Graph shows that data ranges -2:3 and -1:2, which is not centered around zero
+# Also shows that data is pretty well distributed, could be better but not bad
+```
+
+```{r Paths}
+summary(model$model1) # c path
+# condition predicts acceptability b = XX, t(XX) = XX, p < .001
+
+summary(model$model2) # a1 path
+# condition predicting invisibility b = XX, t(XX) = XX, p < .001
+
+summary(model$model3) # a1 d1 path
+# Condition predicting racism minimization b = XX, t(XX) = XX, p < .001
+# Invisibility predicting racism minimization b = XX, t(XX) = XX, p < .001
+
+summary(model$model4) # b1 b1 c' path
+
+# Invisibility predicting Acceptability (with Condition and Racism minimization in the equation) b = XX, t(XX) = XX, p < .001
+# Racism Minimization prediciting Acceptability b = XX, t(XX) = XX, p < .001
+# Condition predicting Acceptability b = XX, t(XX) = XX, p < .001
+
+```
+
+```{r Effects}
+
+# Total effect is c
+model$total.effect
+
+# Direct effect is c prime
+model$direct.effect
+
+# Indirect effect 1 is x -> m1 -> y 
+model$indirect.effect1
+
+# Indirect effect 2 is x -> m2 -> y
+model$indirect.effect2
+
+# Indirect effect 3 is x -> m1 -> m2 -> y
+model$indirect.effect3
+
+# Mediation effects measure difference between total and direct effects - partials out where the mediation is occuring 
+# If they are measured on the same scale, you can compare estimates 
+
+
+```
+
+```{r Bootstrap}
+# bootstrapped indirect
+
+model$boot.results
+```
+
+```{r Bootstrap CI}
+# Bootstrap Confidence Interval for each Indirect Effect
+model$boot.ci$indirect1.Condition.1 # not mediated
+model$boot.ci$indirect2.Condition.2 # mediated
+model$boot.ci$indirect3.Condition.3 #mediated
+```
