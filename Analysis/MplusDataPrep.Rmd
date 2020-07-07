@@ -1,0 +1,35 @@
+---
+title: "MplusDataPrep"
+author: "Julisa"
+date: "7/6/2020"
+output: html_document
+---
+
+
+```{r Packages} 
+library(ggplot2)
+library(tidyverse)
+library(abind)
+library(foreach)
+library(haven)
+library(labelled)
+library(psych)
+library(multicon)
+library(varhandle)
+library(hablar)
+library(haven)
+library(tidyr)
+library(lavaan)
+library(dplyr)
+library(here)
+library(rio)
+library(JSmediation)
+# install.packages("remotes")
+# library(remotes)
+# remotes::install_github("doomlab/MeMoBootR")
+
+# install.packages("lavaan")
+# install.packages("tidyr")
+# devtools::install_github("hadley/tidyverse")
+
+```

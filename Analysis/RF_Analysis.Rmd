@@ -998,7 +998,13 @@ BFS3.fullraw <- Study3rawdataset %>% dplyr::select(
   B3_1, B3_2, B3_3, B3_4,
   B5_1, B5_2, B5_3, B5_4,
   B6_1, B6_2, B6_3, B6_4
-)
+) 
+
+BF.Key = c(1, -1, 1, -1, 
+           1, -1, 1, -1,
+           1, -1, 1, -1,
+           1, -1, 1, -1,
+           1, -1, 1, -1)
 
 BFS3.full <-
   reverse.code(BF.Key,
@@ -1035,6 +1041,7 @@ Study3rawdataset <- mutate(Study3rawdataset, RFOK_S3 =
                       nomiss = 0.6))
 
 Study3rawdataset <- mutate(Study3rawdataset, OK_S3 = dplyr::coalesce(BFOK_S3, RFOK_S3))
+
 
 ```
 
@@ -1073,6 +1080,7 @@ NRM.3dfThree <- as.data.frame(NRM.3rawThree)
 
 Study3rawdataset <- mutate(Study3rawdataset, RM_S3Three = dplyr::coalesce(BRM.3Three, NRM.3Three))
 
+
 ```
 
 ```{r RacismMini T-test}
@@ -1083,12 +1091,17 @@ t.test(NRM.3Three, BRM.3Three, paired = FALSE, var.equal = TRUE)
 
 
 ```{r Invisibility}
-BIN.3raw <- Study3rawdataset %>% dplyr::select(
-  BlkContemporaryInvis_1, BlkContemporaryInvis_2, BlkContemporaryInvis_3,
-  BlkContemporaryInvis_4, BlkContemporaryInvis_5, BlkContemporaryInvis_6
-  )
+#BIN.3raw <- Study3rawdataset %>% dplyr::select(
+#  BlkContemporaryInvis_1, BlkContemporaryInvis_2, BlkContemporaryInvis_3,
+#  BlkContemporaryInvis_4, BlkContemporaryInvis_5, BlkContemporaryInvis_6
+#  )
 
-IN.3key = c(1, -1, 1, 1, 1, 1)
+BIN.3raw <- Study3rawdataset %>% dplyr::select(
+  BlkContemporaryInvis_1, BlkContemporaryInvis_2, BlkContemporaryInvis_3)
+
+#IN.3key = c(1, -1, 1, 1, 1, 1)
+
+IN.3key = c(1, -1, 1)
 
 BIN.3r <- reverse.code(IN.3key,
                       BIN.3raw,
@@ -1105,9 +1118,12 @@ Study3rawdataset <- mutate(Study3rawdataset, BIN_S3 = multicon::composite(BIN.3r
 
 ```{r Native Invisibility}
 
+#NIN.3raw <- Study3rawdataset %>% dplyr::select(
+#  NtvContemporaryInvis_1, NtvContemporaryInvis_2, NtvContemporaryInvis_3,
+#  NtvContemporaryInvis_4, NtvContemporaryInvis_5, NtvContemporaryInvis_6)
+
 NIN.3raw <- Study3rawdataset %>% dplyr::select(
-  NtvContemporaryInvis_1, NtvContemporaryInvis_2, NtvContemporaryInvis_3,
-  NtvContemporaryInvis_4, NtvContemporaryInvis_5, NtvContemporaryInvis_6)
+  NtvContemporaryInvis_1, NtvContemporaryInvis_2, NtvContemporaryInvis_3)
 
 NIN.3r <- reverse.code(IN.3key,
                       NIN.3raw,
@@ -1126,23 +1142,40 @@ Study3rawdataset <- mutate(Study3rawdataset, NIN_S3 = multicon::composite(NIN.3r
 
 Study3rawdataset <- mutate(Study3rawdataset, IN_S3 = dplyr::coalesce(BIN_S3, NIN_S3))
 
-describe(Study3rawdataset$IN_S3)
 
 ```
 
 ```{r Invisibility Ttest}
 
-t.test(NIN_S3, BIN_S3, paired = FALSE, var.equal = TRUE)
+t.test(Study3rawdataset$NIN_S3, Study3rawdataset$BIN_S3, paired = FALSE, var.equal = TRUE)
+
+```
+
+```{r Creating mplus file with comps}
+
+
+OK <- Study3rawdataset$OK_S3
+RM <- Study3rawdataset$RM_S3Three
+IN <- Study3rawdataset$IN_S3
+Target <- Study3rawdataset$Condition_S3
+
+vars <- data.frame(OK, RM, IN, Target)
+
+# write.csv(vars, "C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study3MplusComposite.csv")
 
 ```
 
 
 ```{r Option A - Serial Mediation Model}
+
+# Use this option!! 
+
 Condition <- Study3rawdataset$Condition_S3
 IN <- Study3rawdataset$IN_S3
 RM <- Study3rawdataset$RM_S3Three
 OK <- Study3rawdataset$OK_S3
 Data <- data.frame(Condition, OK, IN, RM)
+
 
 multipleMediation <-
 "
@@ -1160,6 +1193,25 @@ multipleMediation <-
 
 fit <- sem(model = multipleMediation, data = Data)
 summary(fit)
+```
+
+```{r Model without Invisibility}
+
+model <- ' # direct effect
+             OK ~ c*Condition
+           # mediator
+             RM ~ a*Condition
+             OK ~ b*RM
+           # indirect effect (a*b)
+             ab := a*b
+           # total effect
+             total := c + (a*b)
+         '
+
+fit <- sem(model, data = Data)
+summary(fit)
+
+
 ```
 
 
@@ -1379,13 +1431,18 @@ NRM.4dfThree <- as.data.frame(NRM.4rawThree)
 ```
 
 ```{r Invisibility}
-BIN.4raw <- Study4rawdataset %>% dplyr::select(
-  BlkContemporaryInvis_1, BlkContemporaryInvis_2, BlkContemporaryInvis_3,
-  BlkContemporaryInvis_4, BlkContemporaryInvis_5, BlkContemporaryInvis_6
-  )
+# BIN.4raw <- Study4rawdataset %>% dplyr::select(
+#  BlkContemporaryInvis_1, BlkContemporaryInvis_2, BlkContemporaryInvis_3,
+#  BlkContemporaryInvis_4, BlkContemporaryInvis_5, BlkContemporaryInvis_6
+#  )
 
-IN.4key = c(1, -1, 1, 
-            1, 1, 1)
+BIN.4raw <- Study4rawdataset %>% dplyr::select(
+  BlkContemporaryInvis_1, BlkContemporaryInvis_2, BlkContemporaryInvis_3)
+
+# IN.4key = c(1, -1, 1, 
+#            1, 1, 1)
+
+IN.4key = c(1, -1, 1)
 
 BIN.4r <- reverse.code(IN.4key,
                       BIN.4raw,
@@ -1398,9 +1455,12 @@ BIN_S4 <- multicon::composite(BIN.4r,
 
 BIN.4df <- as.data.frame(BIN_S4)
 
+#NIN.4raw <- Study4rawdataset %>% dplyr::select(
+#  NtvContemporaryInvis_1, NtvContemporaryInvis_2, NtvContemporaryInvis_3,
+#  NtvContemporaryInvis_4, NtvContemporaryInvis_5, NtvContemporaryInvis_6)
+
 NIN.4raw <- Study4rawdataset %>% dplyr::select(
-  NtvContemporaryInvis_1, NtvContemporaryInvis_2, NtvContemporaryInvis_3,
-  NtvContemporaryInvis_4, NtvContemporaryInvis_5, NtvContemporaryInvis_6)
+  NtvContemporaryInvis_1, NtvContemporaryInvis_2, NtvContemporaryInvis_3)
 
 NIN.4r <- reverse.code(IN.4key,
                       NIN.4raw,
@@ -1412,6 +1472,81 @@ NIN_S4 <- multicon::composite(NIN.4r,
   nomiss = 0.6)
 
 NIN.4df <- as.data.frame(NIN_S4)
+
+
+```
+
+```{r} 
+# Prepping data for nalysis with 3 item invisibility 
+
+RFOK <- RFS4.comp
+BFOK <- BFS4.comp
+BRM <- BRM_S4Three
+NRM <- NRM_S4Three
+BIN <- BIN_S4
+NIN <- NIN_S4
+
+
+vars <- data.frame(RFOK, BFOK, BRM, NRM, BIN, NIN)
+
+# write.csv(vars, "C:/Users/Julisa/Documents/RFBF/RFBF.repo/Data/Study4_SPSS_2.csv")
+```
+
+
+```{r Plots for 3 item IN}
+# Looking at plots with 3 item invisibility 
+
+
+RFOK <- Study4rawdataset$RFS4.comp
+BFOK <- Study4rawdataset$BFS4.comp
+BRM <- BRM_S4Three
+NRM <- NRM_S4Three
+BIN <- BIN_S4
+NIN <- NIN_S4
+OKdiff <- (Study4rawdataset$RFS4.comp - Study4rawdataset$BFS4.comp)
+RMdiff <- (NRM_S4Three - BRM_S4Three)
+INdiff <- (NIN_S4 - BIN_S4)
+
+data <- data.frame(BFOK, RFOK, BRM, NRM, NIN, BIN) # put all variables in easy access data frame
+
+data <- data[-c(1:6, 780), ] # deleted empty cases
+
+# write.csv(data, "Study4_SPSS.csv")
+
+df2 <- data.frame(OK = c(data[,"RFS4.comp"], data[,"BFS4.comp"])) # stacking RFOK + BFOK = OK
+df3 <- data.frame(RM = c(data[,"NRM"], data[,"BRM"])) # stacking NRM + BRM = RM
+df4 <- data.frame(IN = c(data[,"NIN"], data[,"BIN"])) # stacking NIN + BIN = IN
+
+                  
+mod_data <- data.frame(df2, df3, df4) # combining all moderation variables in easy access data frame
+
+mod_data$ID <- seq.int(nrow(mod_data)) # creating row ID
+
+mod_data <- mutate(mod_data, Target = ifelse(ID == c(1:773), 1, -1)) # Creating target variable
+
+mod_data <- mutate(mod_data, BlkTarget = ifelse(ID == c(1:773), 1, 0)) # Creating Black target variable
+
+mod_data <- mutate(mod_data, NtvTarget = ifelse(ID == c(1:773), 0, 1)) # Creating Native target variable
+
+
+overall_plot <- 
+  ggplot(
+  mod_data, aes(x=IN, y=OK, color=as.factor(Target))) + #Information for graph
+  geom_point() + # Type of plot
+  xlab("Invisibility of Target Groups") + # labeling x axis 
+  ylab("Acceptability of Racialized Represenations") + # labeling y axis
+  scale_color_manual(
+  values = c("#000000", "#FF0000"), name = "Target Group", labels = c("Black People", "Native People")) #coloring and labels for legend
+
+overall_plot
+
+native_plot <- ggplot(data, aes(x=NIN, y=RFS4.comp)) + geom_point(color = "red") + xlab("Invisibility of Native People") + ylab("Acceptability of Redface")
+
+native_plot
+
+black_plot <- ggplot(data, aes(x=BIN, y=BFS4.comp)) + geom_point() + xlab("Invisibility of Black People") + ylab("Acceptability of Blackface")
+
+black_plot
 
 ```
 

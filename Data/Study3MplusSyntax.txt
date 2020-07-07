@@ -1,0 +1,17 @@
+TITLE: Difference in effects 
+DATA: FILE IS Study3_Mplus.dat;
+VARIABLE: NAMES ARE ok1-ok40 rm1-rm6 in1-in6 Target;
+MODEL: 
+OK BY ok1-ok40;
+RM BY rm1-rm6;
+IN BY in1-in6;
+IN ON Target;
+RM ON Target;
+OK ON Target IN RM;
+RM ON IN;
+MODEL INDIRECT:
+OK IND IN Target;
+OK IND RM Target;
+OK IND RM IN OK; 
+ANALYSIS: BOOTSTRAP = 1000;
+OUTPUT: CINTERVAL(BCBOOTSTRAP);
